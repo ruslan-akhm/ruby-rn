@@ -1,0 +1,3 @@
+Changed scrollEnabled={false} (from true to false) in:
+\node_modules\react-native-calendars\src\expandableCalendar\WeekCalendar\index.js
+to prevent WeekCalendar from scrolling horizontally
