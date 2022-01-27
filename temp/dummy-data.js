@@ -76,9 +76,35 @@ export const symptoms = [
 
 //Should add date when symptom was added ?
 export const notes = {
-	1: { tags: [7, 2] },
-	2: { tags: [3] },
-	3: { tags: [4, 6] },
+	1: {
+		18948: {
+			tags: [7, 2],
+			date: {},
+		},
+	},
+	2: {
+		18978: {
+			tags: [1, 3],
+			date: {},
+		},
+	},
+	3: {
+		19017: {
+			tags: [4, 6],
+			date: {
+				calendarFormat: "2022-01-25",
+				day: "25",
+				month: "01",
+				start_day: 19017,
+				weekDay: "2",
+				year: "2022",
+			},
+		},
+		19018: {
+			tags: [4, 6],
+			date: {},
+		},
+	},
 };
 
 export const periods = [

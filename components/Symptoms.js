@@ -5,7 +5,7 @@ import Colors from "../constants/Colors";
 
 function Symptoms(props) {
 	const [chosenSymptoms, setChosenSymptoms] = useState([]);
-
+	//console.log(props.alreadyChosen);
 	const handleChoose = (id) => {
 		console.log("PRESSED SYMP");
 		setChosenSymptoms(() => {
@@ -23,6 +23,7 @@ function Symptoms(props) {
 				key={s.title}
 				style={[
 					styles.symptom,
+					props.alreadyChosen.includes(s.id) && styles.previosulyChosen,
 					chosenSymptoms.includes(s.id) ? styles.chosen : styles.unchosen,
 				]}
 				onPress={() => handleChoose(s.id)}
@@ -110,6 +111,9 @@ const styles = StyleSheet.create({
 		width: "100%",
 		justifyContent: "center",
 		paddingTop: 10,
+	},
+	previosulyChosen: {
+		backgroundColor: "orange",
 	},
 	symptom: {
 		marginHorizontal: 10,

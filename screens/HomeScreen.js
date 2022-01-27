@@ -12,23 +12,19 @@ import { markCycleStart, showAll } from "../store/actions/cycle";
 import { useSelector, useDispatch } from "react-redux";
 import Notes from "../components/Notes";
 import Colors from "../constants/Colors";
+import TodayInformation from "../components/home/TodayInformation";
+import DaysWidget from "../components/home/DaysWidget";
 
 //ADD ARRAY OF INTERVALS BETWEEN PERIODS TO COUNT AVERAGE based on previous reported intervals?
 
 function HomeScreen({ navigation }) {
 	const [day, setDay] = useState(0);
-	// const [today, setToday] = useState({
-	// 	day: "",
-	// 	month: "",
-	// 	year: "",
-	// 	weekDay: 0,
-	// 	calendarFormat: "",
-	// });
-	const [today, setToday] = useState(null);
+	//const [today, setToday] = useState(null);
 	const cycles = useSelector((state) => state.cycles.cycles);
 	const dispatch = useDispatch();
 
 	useEffect(() => {
+		console.log("HOME SCR RENDER");
 		const lastCycle = cycles[cycles.length - 1];
 		const today_day = Math.trunc(Date.now() / (1000 * 60 * 60 * 24));
 		let total_days = today_day - lastCycle.startDay;
@@ -104,16 +100,10 @@ function HomeScreen({ navigation }) {
 		<SafeAreaView style={styles.safeArea}>
 			<StatusBar barStyle="light-content" />
 			<View style={styles.headerBox}></View>
-			<Button
-				title="Press"
-				onPress={() => {
-					console.log("LOL");
-				}}
-			/>
 			<View style={styles.box}>
 				<View style={[styles.headerBox, styles.headerShape]}></View>
 				<Text>Hello User</Text>
-				<View style={[styles.daysCard, styles.boxShadow]}>
+				{/* <View style={[styles.daysCard, styles.boxShadow]}>
 					<Text style={styles.daysCardText}>It is day</Text>
 					<Text style={styles.daysCardCount}>{day}</Text>
 					<Text style={styles.daysCardText}>of your cycle</Text>
@@ -125,7 +115,8 @@ function HomeScreen({ navigation }) {
 					>
 						<Text style={styles.btnText}>mark NEW period start</Text>
 					</Pressable>
-				</View>
+				</View> */}
+				<DaysWidget />
 				{/* <Button
 					title="Go to Calendar"
 					onPress={() => {
@@ -136,10 +127,11 @@ function HomeScreen({ navigation }) {
 						});
 					}}
 				/> */}
-				<Pressable style={styles.btn} onPress={show}>
+				{/* <Pressable style={styles.btn} onPress={show}>
 					<Text style={styles.btnText}>show state</Text>
-				</Pressable>
-				<Notes />
+				</Pressable> */}
+				<Notes lastCycle={cycles[cycles.length - 1]} />
+				<TodayInformation lastCycle={cycles[cycles.length - 1]} />
 			</View>
 		</SafeAreaView>
 	);
@@ -151,6 +143,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "flex-start",
 		backgroundColor: "#fffafe",
+		backgroundColor: "blue",
 	},
 	boxShadow: {
 		shadowColor: "#171717",

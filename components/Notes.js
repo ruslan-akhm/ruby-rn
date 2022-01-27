@@ -20,36 +20,45 @@ const windowHeight = Dimensions.get("window").height;
 function Notes(props) {
 	const [currentId, setCurrentId] = useState();
 	const [modalVisible, setModalVisible] = useState(false);
+	const [alreadyChosen, setAlreadyChosen] = useState();
 	const dispatch = useDispatch();
 	const notes = useSelector((state) => state.notes.notes);
-	const cycles = useSelector((state) => state.cycles.cycles);
+	//const cycles = useSelector((state) => state.cycles.cycles);
+	const today = useSelector((state) => state.cycles.today);
 
-	//Should pass in props? If we only request cycles for Id. + We already are calling
-	//the cycles from
-	//store in parent (Home) component
 	useEffect(() => {
-		const lastCycle = cycles[cycles.length - 1];
+		console.log("NOTES RENDER");
+		const lastCycle = props.lastCycle; //cycles[cycles.length - 1];
 		!currentId && setCurrentId(lastCycle.notesId);
 	}, []);
 
+	useEffect(() => {
+		currentId && setAlreadyChosen(notes[currentId][today.daysCounter].tags);
+	}, [currentId, modalVisible]);
+
 	const showAllNotes = () => {
 		console.log(notes);
-
-		//console.log(cycles);
-	};
-
-	const openNoteModal = () => {
-		setModalVisible(true);
 	};
 
 	const addSymptom = (symptoms) => {
-		dispatch(addNote({ symptoms, notesId: currentId }));
+		// const { day, month, year } = today;
+		// const start = parseInt(month) + "/" + parseInt(day) + "/" + parseInt(year);
+		// const start_day = Math.trunc(
+		// 	new Date(start).getTime() / (1000 * 60 * 60 * 24)
+		// );
+		dispatch(
+			addNote({
+				symptoms,
+				notesId: currentId,
+				date: { ...today, start_day: today.daysCounter },
+			})
+		);
 		setModalVisible(false);
 	};
 
 	return (
-		<>
-			<Pressable style={styles.btn} onPress={openNoteModal}>
+		<View style={styles.notes}>
+			<Pressable style={styles.btn} onPress={() => setModalVisible(true)}>
 				<Text style={styles.btnText}>+ Add note</Text>
 			</Pressable>
 			<Pressable style={styles.btn} onPress={showAllNotes}>
@@ -61,7 +70,7 @@ function Notes(props) {
 					transparent={true}
 					visible={modalVisible}
 					onRequestClose={() => {
-						console.log("Modal has been closed.");
+						//console.log("Modal has been closed.");
 						setModalVisible(!modalVisible);
 					}}
 				>
@@ -84,12 +93,13 @@ function Notes(props) {
 							<Symptoms
 								closeModal={() => setModalVisible(!modalVisible)}
 								addSymptom={addSymptom}
+								alreadyChosen={alreadyChosen}
 							/>
 						</View>
 					</View>
 				</Modal>
 			</View>
-		</>
+		</View>
 	);
 }
 
@@ -127,6 +137,13 @@ const styles = StyleSheet.create({
 		height: windowHeight * 0.5,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
+	},
+	notes: {
+		backgroundColor: "white",
+		width: "100%",
+		flex: 0.4,
+		marginTop: 20,
+		paddingHorizontal: 20,
 	},
 	tintedBackground: {
 		position: "absolute",

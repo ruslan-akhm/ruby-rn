@@ -12,12 +12,18 @@ const calculateToday = () => {
 	const year = new Date().getFullYear() + "";
 	const weekDay = new Date().getDay() + "";
 	const calendarFormat = year + "-" + month + "-" + day;
+	const start = parseInt(month) + "/" + parseInt(day) + "/" + parseInt(year);
+	const daysCounter = Math.trunc(
+		new Date(start).getTime() / (1000 * 60 * 60 * 24)
+	);
+
 	const updatedToday = {
 		day: day,
 		month: month,
 		year: year,
 		weekDay: weekDay,
 		calendarFormat: calendarFormat,
+		daysCounter: daysCounter,
 	};
 	return updatedToday;
 };
