@@ -8,7 +8,7 @@ import {
 	TouchableOpacity,
 	Dimensions,
 } from "react-native";
-import { addNote } from "../store/actions/notes";
+import { addNote, updateNotes } from "../store/actions/notes";
 import { useSelector, useDispatch } from "react-redux";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Symptoms from "./Symptoms";
@@ -18,38 +18,15 @@ const windowHeight = Dimensions.get("window").height;
 //ADD ARRAY OF INTERVALS BETWEEN CYCLES TO COUNT AVERAGE based on previous reported intervals?
 
 function Notes(props) {
-	const [currentId, setCurrentId] = useState();
 	const [modalVisible, setModalVisible] = useState(false);
-	const [alreadyChosen, setAlreadyChosen] = useState();
 	const dispatch = useDispatch();
-	const notes = useSelector((state) => state.notes.notes);
-	//const cycles = useSelector((state) => state.cycles.cycles);
 	const today = useSelector((state) => state.cycles.today);
 
-	useEffect(() => {
-		console.log("NOTES RENDER");
-		const lastCycle = props.lastCycle; //cycles[cycles.length - 1];
-		!currentId && setCurrentId(lastCycle.notesId);
-	}, []);
-
-	useEffect(() => {
-		currentId && setAlreadyChosen(notes[currentId][today.daysCounter].tags);
-	}, [currentId, modalVisible]);
-
-	const showAllNotes = () => {
-		console.log(notes);
-	};
-
 	const addSymptom = (symptoms) => {
-		// const { day, month, year } = today;
-		// const start = parseInt(month) + "/" + parseInt(day) + "/" + parseInt(year);
-		// const start_day = Math.trunc(
-		// 	new Date(start).getTime() / (1000 * 60 * 60 * 24)
-		// );
 		dispatch(
 			addNote({
 				symptoms,
-				notesId: currentId,
+				cycleId: props.currentId,
 				date: { ...today, start_day: today.daysCounter },
 			})
 		);
@@ -60,9 +37,6 @@ function Notes(props) {
 		<View style={styles.notes}>
 			<Pressable style={styles.btn} onPress={() => setModalVisible(true)}>
 				<Text style={styles.btnText}>+ Add note</Text>
-			</Pressable>
-			<Pressable style={styles.btn} onPress={showAllNotes}>
-				<Text style={styles.btnText}>Show all note</Text>
 			</Pressable>
 			<View style={styles.modalWrapper}>
 				<Modal
@@ -93,7 +67,7 @@ function Notes(props) {
 							<Symptoms
 								closeModal={() => setModalVisible(!modalVisible)}
 								addSymptom={addSymptom}
-								alreadyChosen={alreadyChosen}
+								currentDay={today.daysCounter}
 							/>
 						</View>
 					</View>
@@ -141,7 +115,7 @@ const styles = StyleSheet.create({
 	notes: {
 		backgroundColor: "white",
 		width: "100%",
-		flex: 0.4,
+		flex: 0.2,
 		marginTop: 20,
 		paddingHorizontal: 20,
 	},

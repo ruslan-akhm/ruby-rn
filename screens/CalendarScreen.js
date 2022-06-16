@@ -1,25 +1,45 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Pressable } from "react-native";
-import {
-	Calendar,
-	CalendarList,
-	Agenda,
-	WeekCalendar,
-	CalendarProvider,
-} from "react-native-calendars";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { markCycleStart, calculateToday } from "../store/actions/cycle";
+import {
+	markCycleStart,
+	calculateToday,
+	setOvulationDay,
+	updateMenstruationDays,
+} from "../store/actions/cycle";
 import { Feather } from "@expo/vector-icons";
 
 import monthsList from "../data/months";
+import MonthCalendar from "../components/calendar/MonthCalendar";
+
+import OneWeekCalendar from "../components/calendar/OneWeekCalendar";
+import ConfirmationModal from "../components/calendar/ConfirmationModal";
+import { calculateCycleDates } from "../helpers/calculateCycleDates";
 
 function CalendarScreen({ route, navigation }) {
 	const today = useSelector((state) => state.cycles.today);
-	const dispatch = useDispatch();
+	const userState = useSelector((state) => state.user);
+	const { timeOffset, cycleLength } = userState;
+	/* Calendar state */
 	const [expandedCalendar, setExpandedCalendar] = useState(false);
 	const [chosenDay, setChosenDay] = useState("");
 	const [todayChosen, setTodayChosen] = useState(false);
 	const [headerMonths, setHeaderMonths] = useState("");
+	/* Modal state */
+	const [modalVisible, setModalVisible] = useState(false);
+	const [modalDate, setModalDate] = useState({
+		day: "",
+		month: "",
+		daysFromToday: "",
+	});
+	/* Store cycle data */
+	const [cycleData, setCycleData] = useState({
+		start: "",
+		end: "",
+		start_day: "",
+		end_day: "",
+	});
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		const firstDays = [1, 2, 3, 4, 5, 6];
@@ -51,6 +71,73 @@ function CalendarScreen({ route, navigation }) {
 	useEffect(() => {
 		dispatch(calculateToday());
 	}, []);
+	//ONCE SUBMITTED DAYS OF MENSTR - NEW CYCLE IS CREATED
+	//IF IT'S ENDED: TRUE (IN MANUAL FILL & AUTO FILL) - NEED TO SET NEW CYCLE WITH IS MENSTR = FALSE
+	//AND CHECK HOW MANY DAYS PAST SINCE START DAY TO SET/NOT SET IS OVULATION
+
+	const autoFill = async () => {
+		let dates = [];
+		let chosen = Math.trunc(chosenDay.timestamp / (24 * 60 * 60 * 1000));
+		for (let i = chosen; i <= today.daysCounter; i++) {
+			let date = new Date((i + 1) * 24 * 60 * 60 * 1000);
+			dates.push({
+				date: date.toLocaleDateString(),
+				day: i,
+			});
+		}
+		dates = dates.sort((a, b) => a.day - b.day);
+		//see if expected == today or 3 days before today. set isOvulation correcponsdingly
+		await dispatch(markCycleStart({ ...cycleData, isMenstruation: true }));
+		await dispatch(
+			updateMenstruationDays({
+				days: [...dates],
+				ended: false,
+				endedByUser: false,
+			})
+		);
+		await dispatch(setOvulationDay({ expected: cycleData.expected }));
+		setModalVisible(false);
+		navigation.popToTop();
+	};
+
+	const manualFill = (datesToSubmit) => {
+		/* Sort in ascending order */
+		datesToSubmit = datesToSubmit.sort((a, b) => a.day - b.day);
+
+		const dateArr = datesToSubmit[0].date.split("-");
+		const dates = calculateCycleDates(
+			{
+				timestamp: datesToSubmit[0].day * 24 * 60 * 60 * 1000,
+				day: parseInt(dateArr[2]),
+				month: parseInt(dateArr[1]),
+				year: parseInt(dateArr[0]),
+			},
+			timeOffset,
+			cycleLength
+		);
+		//see if expected == today or 3 days before today.
+		//
+		const todayIsMenstruation = datesToSubmit
+			.map((d) => d.day)
+			.includes(today.daysCounter);
+		console.log(todayIsMenstruation);
+		dispatch(
+			markCycleStart({
+				...dates,
+				isMenstruation: todayIsMenstruation,
+			})
+		);
+		dispatch(
+			updateMenstruationDays({
+				days: [...datesToSubmit],
+				ended: !todayIsMenstruation,
+				endedByUser: !todayIsMenstruation,
+			})
+		);
+		dispatch(setOvulationDay({ expected: dates.expected }));
+		setModalVisible(false);
+		navigation.popToTop();
+	};
 
 	function chooseToday() {
 		setTodayChosen(true);
@@ -58,141 +145,76 @@ function CalendarScreen({ route, navigation }) {
 		const month = new Date().getMonth() + 1;
 		const year = new Date().getFullYear();
 		const dateString = year + "-" + month + "-" + day;
-		const timestamp = Date.now();
-		setChosenDay({
-			dateString,
-			day,
-			month,
-			timestamp,
-			year,
-		});
+		const timestampHours = Math.trunc(Date.now() / (1000 * 60 * 60));
+		const timestamp = (timestampHours + timeOffset) * 60 * 60 * 1000;
+		timestampHours +
+			setChosenDay({
+				dateString,
+				day,
+				month,
+				timestamp,
+				year,
+			});
 	}
 
-	const markDay = () => {
-		let end;
-		const { day, month, year } = chosenDay;
-		const start = month + "/" + day + "/" + year;
-		if (day == 1) {
-			const evenMonths = [2, 4, 6, 8, 9, 11];
-			const oddMonths = [5, 7, 10, 12];
-			if (month == 1) {
-				end = "12/31/" + (year - 1);
-			} else if (evenMonths.includes(month)) {
-				end = month - 1 + "/31/" + year;
-			} else if (oddMonths.includes(month)) {
-				end = month - 1 + "/30/" + year;
-			} else {
-				const leap_years = [2020, 2024, 2028, 2032, 2036, 2040];
-				if (leap_years.includes(year)) {
-					end = month - 1 + "/29/" + year;
-				} else {
-					end = month - 1 + "/28/" + year;
-				}
-			}
-		} else {
-			end = month + "/" + (day - 1) + "/" + year;
-		}
-		const start_day = Math.trunc(
-			new Date(start).getTime() / (1000 * 60 * 60 * 24)
+	const markDay = async () => {
+		const { start, end, start_day, end_day, expected } = calculateCycleDates(
+			chosenDay,
+			timeOffset,
+			cycleLength
 		);
-		const end_day = Math.trunc(new Date(end).getTime() / (1000 * 60 * 60 * 24));
-		dispatch(markCycleStart({ start, end, start_day, end_day }));
+		if (todayChosen) {
+			await dispatch(
+				markCycleStart({ start, end, start_day, end_day, isMenstruation: true })
+			);
+			await dispatch(
+				updateMenstruationDays({
+					days: [{ date: start, day: start_day }],
+					ended: false,
+					endedByUser: false,
+				})
+			);
+			await dispatch(setOvulationDay({ expected }));
+		} else {
+			setModalDate({
+				daysFromToday:
+					today.daysCounter -
+					Math.trunc(chosenDay.timestamp / (24 * 60 * 60 * 1000)) +
+					1,
+				chosenDay: chosenDay,
+			});
+			setCycleData({
+				start: start,
+				end: end,
+				start_day: start_day,
+				end_day: end_day,
+				expected: expected,
+			});
+			setModalVisible(true);
+			//
+		}
 	};
 
 	return (
 		<View style={styles.container}>
 			{!expandedCalendar ? (
-				<View style={styles.calendarBox}>
-					<CalendarProvider
-						style={styles.provider}
-						date={today.calendarFormat}
-						showTodayButton={false}
-						disabledOpacity={0.6}
-					>
-						<View style={styles.weekCalendarHeader}>
-							<Text>{headerMonths}</Text>
-						</View>
-						<WeekCalendar
-							firstDay={
-								parseInt(today.weekDay) == 6 ? 0 : parseInt(today.weekDay) + 1
-							}
-							onDayPress={(day) => {
-								setTodayChosen(() => {
-									return day.dateString == today.calendarFormat ? true : false;
-								});
-
-								setChosenDay(day);
-							}}
-							markingType={"custom"}
-							markedDates={{
-								[today.calendarFormat]: {
-									customStyles: {
-										container: {},
-										text: {
-											color: "orange",
-											fontWeight: "bold",
-										},
-									},
-								},
-								[chosenDay]: {
-									customStyles: {
-										container: {
-											backgroundColor: "green",
-										},
-										text: {
-											color: "black",
-											fontWeight: "bold",
-										},
-									},
-								},
-							}}
-						/>
-					</CalendarProvider>
+				<View style={styles.weekCalendarBox}>
+					<OneWeekCalendar
+						chosenDay={chosenDay}
+						setChosenDay={(day) => setChosenDay(day)}
+						setTodayChosen={(bool) => setTodayChosen(bool)}
+						today={today}
+						headerMonths={headerMonths}
+					/>
 				</View>
 			) : (
 				<View style={styles.calendarBox}>
-					<CalendarList
-						pastScrollRange={1}
-						futureScrollRange={0}
-						theme={{
-							backgroundColor: "#000",
-							calendarBackground: "#000",
-							textSectionTitleColor: "#b6c1cd",
-							textSectionTitleDisabledColor: "#d9e1e8",
-							//selectedDayBackgroundColor: "#00adf5",
-						}}
-						maxDate={today.calendarFormat}
-						onDayPress={(day) => {
-							setTodayChosen(() => {
-								return day.dateString == today.calendarFormat ? true : false;
-							});
-							setChosenDay(day);
-						}}
-						markingType={"custom"}
-						markedDates={{
-							[today.calendarFormat]: {
-								customStyles: {
-									container: {},
-									text: {
-										color: "orange",
-										fontWeight: "bold",
-									},
-								},
-							},
-							[chosenDay]: {
-								customStyles: {
-									container: {
-										backgroundColor: "green",
-									},
-									text: {
-										color: "black",
-										fontWeight: "bold",
-									},
-								},
-							},
-						}}
+					<MonthCalendar
+						chosenDay={chosenDay}
+						setChosenDay={(day) => setChosenDay(day)}
+						setTodayChosen={(bool) => setTodayChosen(bool)}
+						today={today}
 					/>
-					{/* <Calendar maxDate={today.calendarFormat} firstDay={1} /> */}
 				</View>
 			)}
 			<Pressable
@@ -217,9 +239,24 @@ function CalendarScreen({ route, navigation }) {
 			>
 				<Text>Today</Text>
 			</Pressable>
-			<Pressable style={[styles.btn, styles.todayBtn]} onPress={markDay}>
+			<Pressable
+				disabled={!chosenDay}
+				style={[styles.btn, styles.todayBtn]}
+				onPress={markDay}
+			>
 				<Text>Mark</Text>
 			</Pressable>
+			{modalVisible && (
+				<ConfirmationModal
+					modalDate={modalDate}
+					modalVisible={modalVisible}
+					setModalVisible={setModalVisible}
+					//setOption={setOption}
+					autoFill={autoFill}
+					manualFill={manualFill}
+					today={today}
+				/>
+			)}
 		</View>
 	);
 }
@@ -231,18 +268,24 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		borderRadius: 5,
 	},
+	// calendar: {
+	// 	width: "100%",
+	// 	backgroundColor: "red",
+	// },
 	calendarBox: {
-		flex: 0.55,
-		width: "100%",
-		height: 100,
-		backgroundColor: "blue",
+		height: 300,
+		width: "90%",
+		backgroundColor: "white",
+		borderRadius: 12,
+		//alignItems: "flex-start",
 		justifyContent: "flex-end",
 	},
 	container: {
 		flex: 1,
 		backgroundColor: "green",
 		alignItems: "center",
-		justifyContent: "center",
+		justifyContent: "flex-start",
+		paddingTop: 100,
 	},
 	expander: {
 		width: 100,
@@ -259,14 +302,12 @@ const styles = StyleSheet.create({
 	test: {
 		backgroundColor: "red",
 	},
-	provider: {
-		backgroundColor: "red",
-		flex: 0.36,
-	},
-	weekCalendarHeader: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 10,
+
+	weekCalendarBox: {
+		height: 140,
+		width: "90%",
+		backgroundColor: "white",
+		borderRadius: 12,
 	},
 });
 

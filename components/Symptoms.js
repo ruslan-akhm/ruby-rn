@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
 import { symptoms } from "../temp/dummy-data";
 import Colors from "../constants/Colors";
 
 function Symptoms(props) {
 	const [chosenSymptoms, setChosenSymptoms] = useState([]);
-	//console.log(props.alreadyChosen);
+	const [alreadyChosen, setAlreadyChosen] = useState([]);
+	const notes = useSelector((state) => state.notes.notes);
+
+	useEffect(() => {
+		props.currentDay && setAlreadyChosen(notes[props.currentDay].tags);
+	}, [notes, props]);
+
 	const handleChoose = (id) => {
-		console.log("PRESSED SYMP");
 		setChosenSymptoms(() => {
 			if (chosenSymptoms.includes(id)) {
 				return chosenSymptoms.filter((s) => s !== id);
@@ -23,10 +29,11 @@ function Symptoms(props) {
 				key={s.title}
 				style={[
 					styles.symptom,
-					props.alreadyChosen.includes(s.id) && styles.previosulyChosen,
+					alreadyChosen.includes(s.id) && styles.previosulyChosen,
 					chosenSymptoms.includes(s.id) ? styles.chosen : styles.unchosen,
 				]}
 				onPress={() => handleChoose(s.id)}
+				disabled={alreadyChosen.includes(s.id)}
 			>
 				<Text
 					style={[
@@ -41,6 +48,7 @@ function Symptoms(props) {
 			</Pressable>
 		);
 	});
+
 	return (
 		<>
 			<View style={styles.list}>{symptomsList}</View>

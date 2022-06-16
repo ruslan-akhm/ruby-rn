@@ -2,10 +2,20 @@ export const ADD_NOTE = "ADD_NOTE";
 export const REMOVE_NOTE = "REMOVE_NOTE";
 export const ADD_TAG = "ADD_TAG";
 export const REMOVE_TAG = "REMOVE_TAG";
+export const UPDATE_NOTES = "UPDATE_NOTES";
+export const MODIFY_NOTES = "MODIFY_NOTES";
 
 //rename
 export const addNote = (payload) => {
 	return { type: ADD_NOTE, payload }; // text
+};
+
+export const updateNotes = (payload) => {
+	return { type: UPDATE_NOTES, payload };
+};
+
+export const modifyNotes = (payload) => {
+	return { type: MODIFY_NOTES, payload };
 };
 
 export const removeNote = (date) => {
