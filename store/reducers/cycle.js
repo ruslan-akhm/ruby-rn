@@ -26,7 +26,6 @@ const cycleReducer = (state = initialState, action) => {
 	switch (type) {
 		/* Create (start) new cycle and end previous one if it exists  */
 		case MARK_CYCLE_START: {
-			console.log(payload);
 			let newCycle;
 			let updatedCycles = [...state.cycles];
 			if (state.cycles.length === 0) {
@@ -143,8 +142,6 @@ const cycleReducer = (state = initialState, action) => {
 
 		/* Count expected ovulation day based on cycle start day and average length */
 		case MARK_EXPECTED_OVULATION: {
-			console.log("Ovul payload");
-			console.log(payload);
 			const day_hours = payload * 24;
 			const date = new Date((day_hours + 24) * 60 * 60 * 1000); //ADDING +24 (hours) to day_hours since JS returns date 1 day behind
 			const updatedOvulation = [...state.ovulations];

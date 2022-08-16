@@ -41,40 +41,52 @@ export const cycles = [
 	},
 ];
 
-export const symptoms = [
-	{
-		id: 1,
-		title: "tiredness",
-	},
-	{
-		id: 2,
-		title: "dizziness",
-	},
-	{
-		id: 3,
-		title: "stomachache",
-	},
-	{
-		id: 4,
-		title: "nausea",
-	},
-	{
-		id: 5,
-		title: "weakness",
-	},
-	{
-		id: 6,
-		title: "backpain",
-	},
-	{
-		id: 7,
-		title: "headache",
-	},
-	{
-		id: 8,
-		title: "vomitting",
-	},
-];
+export const symptoms = {
+	1: "tiredness",
+	2: "dizziness",
+	3: "stomachache",
+	4: "nausea",
+	5: "weakness",
+	6: "backpain",
+	7: "headache",
+	8: "vomitting",
+};
+
+// export const symptoms = [
+// 	{
+// 		id: 1,
+// 		title: "tiredness",
+// 	},
+// 	{
+// 		id: 2,
+// 		title: "dizziness",
+// 	},
+// 	{
+// 		id: 3,
+// 		title: "stomachache",
+// 	},
+// 	{
+// 		id: 4,
+// 		title: "nausea",
+// 	},
+// 	{
+// 		id: 5,
+// 		title: "weakness",
+// 	},
+// 	{
+// 		id: 6,
+// 		title: "backpain",
+// 	},
+// 	{
+// 		id: 7,
+// 		title: "headache",
+// 	},
+// 	{
+// 		id: 8,
+// 		title: "vomitting",
+// 	},
+// ];
+
 //pains, dizziness, vomitting, nausea, tiredness,
 //weakness, fever, chills,
 //shakes, stomachache, headache, stools,

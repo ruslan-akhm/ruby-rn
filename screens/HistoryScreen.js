@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 
 import Calendar from "../components/history/Calendar";
 
-function HistoryScreen({ route }) {
+function HistoryScreen({ route, navigation }) {
 	return (
 		<View>
-			<Text>Calendar goes here</Text>
-			<Text>
-				It should be calendar for 12 previous months Inlcuding(!) current month
-				{"\n"}
-				Calendar will hightlight periods and have dots for days where there are
-				symptoms reported {"\n"}
-				It should also show ovul day (1 day) if its both ovul and period day -
-				{">"} 2 colors (diagonally)
-			</Text>
+			<Pressable
+				style={{
+					borderWidth: 2,
+					borderColor: "green",
+					paddingVertical: 10,
+					paddingHorizontal: 15,
+				}}
+				onPress={() => navigation.navigate("Modify")}
+			>
+				<Text
+					style={{
+						fontSize: 20,
+					}}
+				>
+					Edit cycles history
+				</Text>
+			</Pressable>
 			<Calendar />
 		</View>
 	);

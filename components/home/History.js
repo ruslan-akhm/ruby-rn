@@ -11,7 +11,7 @@ const History = ({ navigation }) => {
 					navigation.navigate("History");
 				}}
 			>
-				<Text style={styles.btnText}>History</Text>
+				<Text style={styles.btnText}>Calendar</Text>
 			</Pressable>
 		</View>
 	);

@@ -9,12 +9,12 @@ function OneWeekCalendar(props) {
 			date={props.today.calendarFormat}
 			showTodayButton={false}
 			disabledOpacity={0.6}
-			style={{
-				height: 125,
-				borderRadius: 12,
-				borderWidth: 2,
-				width: "100%",
-			}}
+			// style={{
+			// 	height: 125,
+			// 	borderRadius: 12,
+			// 	borderWidth: 2,
+			// 	width: "100%",
+			// }}
 		>
 			<View style={styles.weekCalendarHeader}>
 				<Text>{props.headerMonths}</Text>

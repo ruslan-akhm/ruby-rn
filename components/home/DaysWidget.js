@@ -2,86 +2,58 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { calculateDays } from "../../helpers/calculateDays";
-import { determineCurrentState } from "../../helpers/determineCurrentState";
-import { markMenstruationsEnd, test } from "../../store/actions/cycle";
+import { determineCurrentMessage } from "../../helpers/determineCurrentMessage";
+import handleDaysWidgetMessage from "../../helpers/handleDaysWidgetMessage";
+// import {
+// 	autoFIllMenstruation,
+// 	markMenstruationsEnd,
+// 	test,
+// } from "../../store-1/actions/cycle";
+
+import moment from "moment";
+import Colors from "../../constants/Colors";
 
 const DaysWidget = (props) => {
 	const { navigation, cyclesState, userState } = props;
 	const dispatch = useDispatch();
 	const [day, setDay] = useState(0);
 	const [currentState, setCurrentState] = useState("");
-	const lastCycle = cyclesState.cycles[cyclesState.cycles.length - 1];
+	const lastCycle =
+		cyclesState.cycles[Math.max(...Object.keys(cyclesState.cycles))];
 
 	useEffect(() => {
-		const today_day = cyclesState.today.daysCounter; //Math.trunc(Date.now() / (1000 * 60 * 60 * 24));
-		let total_days = today_day - lastCycle.startDay + 1;
-		setDay(() => {
-			return total_days;
-		});
-	}, [cyclesState]);
-
-	useEffect(() => {
-		const current = determineCurrentState(cyclesState, userState);
-		//FIX LOGIC HERE TO USE determineCurrentState
-		console.log("Determine state!!!");
-		console.log(current);
-		//RETURNS UNDEFINED IN SOME CASES NOW
-		//========================================================
-		if (current.type === "state") {
-			console.log(current.data);
-			//dispatch
-			if (current.data == "MARK_MENSTRUATION_END") {
-				//+fill up all days up to current.payload
-				//set ended: true
-				//endedByUser: false
-				//isMenstruation: false
-				//SHOULD expect ARRAY OF DAYS
-				//return dispatch(markMenstruationsEnd(current.payload))
-
-				let updatedMenstruationDays = calculateDays(current.payload);
-				console.log(updatedMenstruationDays);
-				//PASS ARRAY OF DAYS AND UPDATE LAST CYCLE AND LAST MENSTRUATION
-				//dispatch(markMenstruationsEnd());
-			}
-			if (current.data == "UPDATE_MENSTRUATIONS") {
-				//fill up all days up to today
-				//EXPECTS ARRAY OF DAYS
-				//return dispatch(updateMenstruationDays()) ??
-				let updatedMenstruationDays = calculateDays(current.payload);
-				console.log(updatedMenstruationDays);
-			}
-			if (current.data == "UPDATE_MENSTRUATIONS_AND_END_THEM") {
-				//fill up all days up until current.payload
-				let updatedMenstruationDays = calculateDays(current.payload);
-				console.log(updatedMenstruationDays);
-			}
-		} else if (current.type === "message") {
-			setCurrentState(current.data);
+		if (cyclesState.cycles[lastCycle.id].isCurrently) {
+			let daysCount = moment(cyclesState.today.calendarFormat).diff(
+				cyclesState.cycles[lastCycle.id].period.start,
+				"days"
+			);
+			/* Adding +1 to include today's day */
+			setDay(daysCount + 1);
 		}
-		//!lastCycle.isMenstruation -> btn = mark menstruation
-		// if last ovulation day.day < today.daysCounter  -> new period
-		// else -> same period
-		//lastCycle.isMenstruation -> btn = end menstruation
 
-		// setCurrentState(() => {
-		// 	if (lastCycle.isMenstruation) {
-		// 		return "Menstruation";
-		// 	}
-		// 	if (lastCycle.isOvulation) {
-		// 		return "Ovulation";
-		// 	}
-		// 	return "";
-		// 	//if 3 days before ovul - notify
-		// 	//if 3 days before end of cycle - notify
-		// });
-	}, [lastCycle]);
+		let stateObj = determineCurrentMessage(cyclesState, userState);
+
+		if (stateObj.type.category === "MESSAGE") {
+			const message = handleDaysWidgetMessage(
+				stateObj.type.value,
+				stateObj.payload
+			);
+			setCurrentState(message.message);
+		} else {
+			setCurrentState("");
+		}
+
+		//ELSE???? - check cycles, if no objects -> show welcome info
+	}, [cyclesState]);
 
 	return (
 		<View style={[styles.daysCard, styles.boxShadow]}>
-			<Text style={styles.daysCardText}>It is day</Text>
-			<Text style={styles.daysCardCount}>{day}</Text>
-			<Text style={styles.daysCardText}>of your cycle</Text>
-			<Text>{currentState}</Text>
+			<View style={{ flexDirection: "column", alignItems: "center" }}>
+				<Text style={styles.stateMessage}>{currentState}</Text>
+				<Text style={styles.daysCardCount}>{day}</Text>
+				<Text style={styles.daysCardText}>{day == 1 ? "DAY" : "DAYS"}</Text>
+			</View>
+
 			<Pressable
 				style={[styles.btn, styles.startBtn]}
 				onPress={() => {
@@ -96,44 +68,65 @@ const DaysWidget = (props) => {
 
 const styles = StyleSheet.create({
 	boxShadow: {
-		shadowColor: "#171717",
+		shadowColor: Colors.primary,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.25,
 		shadowRadius: 4,
+		borderWidth: 0.5,
+		borderColor: Colors.background,
 	},
 	btn: {
-		backgroundColor: "orange",
+		// backgroundColor: "orange",
 		padding: 15,
 		marginTop: 10,
-		borderRadius: 5,
+		borderRadius: 10,
 	},
 	btnText: {
 		fontSize: 20,
+		color: Colors.white,
+		fontWeight: "600",
+		letterSpacing: 0.5,
 	},
 	daysCard: {
 		width: "90%",
 		height: 240,
 		backgroundColor: "white",
 		marginTop: "5%",
-		borderRadius: 12,
+		borderRadius: 14,
 		padding: 10,
 		alignItems: "center",
 		justifyContent: "flex-start",
 	},
 	daysCardText: {
-		fontSize: 20,
+		fontSize: 30,
+		fontWeight: "bold",
+		color: Colors.primary,
+		opacity: 0.3,
+		textAlign: "center",
+		// borderWidth: 2,
 	},
 	daysCardCount: {
-		fontSize: 78,
-		color: "#004550",
+		fontSize: 100,
+		// color: "#004550",
+		color: Colors.primary,
+		lineHeight: 98,
+		// borderWidth: 2,
+		height: 88,
 	},
 	startBtn: {
-		backgroundColor: "#004550",
+		// backgroundColor: "#004550",
+		backgroundColor: Colors.secondary,
 		width: "100%",
 		height: 60,
 		alignItems: "center",
 		justifyContent: "center",
 		marginTop: "auto",
+	},
+	stateMessage: {
+		marginBottom: 5,
+		fontWeight: "600",
+		fontSize: 16,
+		height: 20,
 	},
 });
 

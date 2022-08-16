@@ -8,7 +8,7 @@ import {
 	TouchableOpacity,
 	Dimensions,
 } from "react-native";
-import { addNote, updateNotes } from "../store/actions/notes";
+import { addNote, updateNotes } from "../../store-1/actions/notes";
 import { useSelector, useDispatch } from "react-redux";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Symptoms from "./Symptoms";
@@ -17,44 +17,37 @@ import Symptoms from "./Symptoms";
 const windowHeight = Dimensions.get("window").height;
 //ADD ARRAY OF INTERVALS BETWEEN CYCLES TO COUNT AVERAGE based on previous reported intervals?
 
-function Notes(props) {
-	const [modalVisible, setModalVisible] = useState(false);
+function NotesModal({ modalVisible, setModalVisible, today, currentId }) {
 	const dispatch = useDispatch();
-	const today = useSelector((state) => state.cycles.today);
-
+	//IN MODIFY SCREEN - ADD ABILITY TO ADD NOTES TO EXISTING MENSTR DAYS
 	const addSymptom = (symptoms) => {
 		dispatch(
 			addNote({
 				symptoms,
-				cycleId: props.currentId,
-				date: { ...today, start_day: today.daysCounter },
+				cycleId: currentId,
+				date: { ...today },
 			})
 		);
 		setModalVisible(false);
 	};
 
 	return (
-		<View style={styles.notes}>
-			<Pressable style={styles.btn} onPress={() => setModalVisible(true)}>
-				<Text style={styles.btnText}>+ Add note</Text>
-			</Pressable>
-			<View style={styles.modalWrapper}>
-				<Modal
-					animationType="fade"
-					transparent={true}
-					visible={modalVisible}
-					onRequestClose={() => {
-						//console.log("Modal has been closed.");
-						setModalVisible(!modalVisible);
-					}}
-				>
-					<View style={styles.tintedBackground}>
-						<TouchableOpacity
-							style={styles.closeArea}
-							onPress={() => setModalVisible(!modalVisible)}
-						></TouchableOpacity>
-						<View style={styles.modalActiveArea}>
-							<Pressable
+		<Modal
+			animationType="fade"
+			transparent={true}
+			visible={modalVisible}
+			onRequestClose={() => {
+				//console.log("Modal has been closed.");
+				setModalVisible(!modalVisible);
+			}}
+		>
+			<View style={styles.tintedBackground}>
+				<TouchableOpacity
+					style={styles.closeArea}
+					onPress={() => setModalVisible(!modalVisible)}
+				></TouchableOpacity>
+				<View style={styles.modalActiveArea}>
+					{/* <Pressable
 								onPress={() => setModalVisible(!modalVisible)}
 								style={styles.buttonClose}
 							>
@@ -63,17 +56,15 @@ function Notes(props) {
 									size={30}
 									color="black"
 								/>
-							</Pressable>
-							<Symptoms
-								closeModal={() => setModalVisible(!modalVisible)}
-								addSymptom={addSymptom}
-								currentDay={today.daysCounter}
-							/>
-						</View>
-					</View>
-				</Modal>
+							</Pressable> */}
+					<Symptoms
+						//closeModal={() => setModalVisible(!modalVisible)}
+						addSymptom={addSymptom}
+						currentDay={today.daysCounter}
+					/>
+				</View>
 			</View>
-		</View>
+		</Modal>
 	);
 }
 
@@ -95,7 +86,7 @@ const styles = StyleSheet.create({
 	},
 	closeArea: {
 		width: "100%",
-		height: windowHeight * 0.5,
+		height: windowHeight * 0.25,
 	},
 	modalWrapper: {
 		flex: 1,
@@ -108,7 +99,7 @@ const styles = StyleSheet.create({
 		marginTop: "auto",
 		backgroundColor: "white",
 		justifyContent: "flex-start",
-		height: windowHeight * 0.5,
+		height: windowHeight * 0.75,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -128,4 +119,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default Notes;
+export default NotesModal;

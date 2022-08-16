@@ -1,128 +1,86 @@
-import { test } from "../store/actions/cycle";
+import moment from "moment";
+//import { test } from "../store/actions/cycle";
 
 export const determineCurrentState = (cyclesState, userState) => {
-	const { today, cycles, menstruations } = cyclesState;
+	const { today, cycles, menstruations, ovulations } = cyclesState;
 	const { cycleLength, menstruationLength } = userState;
 
 	//THIS HAS TO BE REWRITTENT IF USER JUST STARTED USING OUR APP
-
-	//
-	// THIS TO BE USED WHEN PUSHING NEW OVULATION INTO CYCLES
-
-	const lastMenstruation = menstruations[menstruations.length - 1];
-	//console.log(lastMenstruation);
-	const firstDayOfMenstruation = lastMenstruation.days[0];
-	const lastDayOfMenstruation =
-		lastMenstruation.days[lastMenstruation.days.length - 1];
-	//console.log(lastDayOfMenstruation);
-	/* If menstruation is NOT ended yet (current cycle)  */
-	if (!lastMenstruation.ended) {
-		/* check if last added day in menstuation[] is less then first day+menstrLength - meaning user is still in menstruation */
-		if (
-			firstDayOfMenstruation.day + menstruationLength >
-			lastDayOfMenstruation.day
-		) {
-			/* user didnt check app for some time, menstr should have ended already */
-			if (today.daysCounter > firstDayOfMenstruation.day + menstruationLength) {
-				//fill up all days up until firstDayOfMenstruation.day + menstruationLength
-				return {
-					type: "state",
-					data: "UPDATE_MENSTRUATIONS_AND_END_THEM",
-					payload: {
-						lastMenstruation: lastMenstruation,
-						lastDay: firstDayOfMenstruation.day + menstruationLength,
-					},
-				};
-			} else {
-				//today <= firstDayOfMenstruation.day + menstruationLength  -  user is still in menstr process
-				//fill up all days up until (and including) today
-				return {
-					type: "state",
-					data: "UPDATE_MENSTRUATIONS",
-					payload: {
-						lastMenstruation: lastMenstruation,
-						lastDay: today.daysCounter,
-					},
-				};
-			}
-
-			//return { type: "state", data: "UPDATE_MENSTRUATION" };
-			//push today (day & date) into menstruation day
-			//UPDATE_MENSTRUATION
-		} else {
-			return {
-				type: "state",
-				data: "MARK_MENSTRUATION_END",
-				payload: {
-					lastMenstruation: lastMenstruation,
-					lastDay: firstDayOfMenstruation.day + (menstruationLength - 1), //subtract 1 here, since firstDayOfMenstruation already marked (otherwise will add 8 days instead of 7)
-				},
-			};
-			//last day should be firstDayOfMenstruation.day + menstruationLength
-			//need to set ended: true if its been menstruationLength
-			//MARK_MENSTRUATION_END
-		}
-	} else {
-		const lastCycle = cycles[cycles.length - 1];
-		//const lastOvulation = ovulations[ovulations.length - 1];
-		const expectedOvulationDay =
-			lastCycle.startDay + Math.trunc(cycleLength / 2);
-		/* check if today is close close by ovulation day OR by the end of cycle */
-		if (expectedOvulationDay - today.daysCounter < 4) {
-			if (expectedOvulationDay - today.daysCounter === 0) {
-				return { type: "message", data: "Ovulation today" };
-				//show ovul is today
-			} else if (expectedOvulationDay - today.daysCounter > 0) {
-				return {
-					type: "message",
-					data: `Ovulation is expected in ${
-						expectedOvulationDay - today.daysCounter
-					} days`,
-				};
-				//show ovulation is in expectedOvulationDay - today.daysCounter days
-				//
-			}
-		}
-
-		if (lastCycle.startDay + cycleLength - today.daysCounter < 4) {
-			if (lastCycle.startDay + cycleLength - today.daysCounter > 0) {
-				//show your menstr shoudl start in lastCycle.startDay - today.daysCounter days
-				return {
-					type: "message",
-					data: `Menstruation is expected in ${
-						lastCycle.startDay - today.daysCounter
-					} days`,
-				};
-			} else if (lastCycle.startDay + cycleLength - today.daysCounter === 0) {
-				//show your menstr shoudl start today
-				return {
-					type: "message",
-					data: `Menstruation is expected in today`,
-				};
-			} else {
-				//console.log(today.daysCounter - (lastCycle.startDay + cycleLength));
-				return {
-					type: "message",
-					data: `Menstruation should have started ${
-						today.daysCounter - (lastCycle.startDay + cycleLength)
-					} ${
-						today.daysCounter - (lastCycle.startDay + cycleLength) === 1
-							? "day"
-							: "days"
-					} ago`,
-				};
-			}
-		}
-
+	if (Object.keys(cycles).length === 0) {
 		return {
-			type: "state",
-			data: "UPDATE_MENSTRUATIONS_AND_END_THEM",
-			payload: {
-				lastMenstruation: lastMenstruation,
-				lastDay: firstDayOfMenstruation.day + (menstruationLength - 1),
+			type: {
+				category: "DEFAULT",
+				value: null,
 			},
+			payload: null,
 		};
-
-		return { type: "message", data: null };
 	}
+
+	const latestCycleId = Math.max(...Object.keys(cycles));
+	/* Check if currently a menstruation */
+	if (
+		cycles[latestCycleId].menstruation.isCurrently &&
+		menstruations[latestCycleId].days.length < menstruationLength
+	) {
+		/* menstruationLengthAgo = Date of today's day - menstruationLength days */
+		/* subtracting menstruationLength - 1 days, because we already are counting the very first day, so only need to add menstruationLength - 1 more  */
+		let menstruationLengthAgo = moment(today.calendarFormat)
+			.subtract(menstruationLength - 1, "days")
+			.format("L");
+
+		/* Difference between first reported day of current menstruation and menstruationLengthAgo */
+		const firstReportedDay = menstruations[latestCycleId].days[0].dateString;
+		const difference = moment(firstReportedDay).diff(
+			menstruationLengthAgo,
+			"days"
+		);
+
+		/* if Difference is >= 0 - we add days from LAST ADDED up until TODAY to menstruations, 
+		   else set is Currently to false 
+		*/
+		const lastReportedDay =
+			menstruations[latestCycleId].days[
+				menstruations[latestCycleId].days.length - 1
+			].dateString;
+		if (difference >= 0) {
+			let daysToAdd = [];
+			let dayToadd = lastReportedDay;
+			while (!moment(dayToadd).isSame(today.calendarFormat)) {
+				dayToadd = moment(dayToadd).add(1, "days").format("L");
+				daysToAdd.push({ dateString: dayToadd });
+			}
+			return {
+				type: { category: "STATE_UPDATE", value: "ADD_MENSTRUATIONS_DAYS" },
+				payload: [...daysToAdd],
+			};
+		} else {
+			let daysToAdd = [];
+			let dayToadd = lastReportedDay;
+			const lastExpectedDay = moment(firstReportedDay)
+				.add(menstruationLength - 1, "days")
+				.format("L");
+			while (!moment(dayToadd).isSame(lastExpectedDay)) {
+				dayToadd = moment(dayToadd).add(1, "days").format("L");
+				daysToAdd.push({ dateString: dayToadd });
+			}
+			return {
+				type: {
+					category: "STATE_UPDATE",
+					value: "ADD_MENSTRUATIONS_DAYS_AND_END", //ended: true, ended by user : false
+				},
+				payload: [...daysToAdd],
+			};
+
+			//fill up menstr so it be length equal to menstruationLength  +
+			//set cycles[id].menstr.isCurrent = false    (( ended: true, ended by user : false  ))
+		}
+	}
+
+	return {
+		type: {
+			category: "DEFAULT",
+			value: null,
+		},
+		payload: null,
+	};
 };
