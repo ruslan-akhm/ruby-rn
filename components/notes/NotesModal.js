@@ -7,17 +7,27 @@ import {
 	Modal,
 	TouchableOpacity,
 	Dimensions,
+	TouchableWithoutFeedback,
+	Keyboard,
 } from "react-native";
 import { addNote, updateNotes } from "../../store-1/actions/notes";
 import { useSelector, useDispatch } from "react-redux";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+// import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Symptoms from "./Symptoms";
+
+import * as Animatable from "react-native-animatable";
 
 // const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
 //ADD ARRAY OF INTERVALS BETWEEN CYCLES TO COUNT AVERAGE based on previous reported intervals?
 
-function NotesModal({ modalVisible, setModalVisible, today, currentId }) {
+function NotesModal({
+	modalVisible,
+	setModalVisible,
+	today,
+	currentId,
+	todaySymptoms,
+}) {
 	const dispatch = useDispatch();
 	//IN MODIFY SCREEN - ADD ABILITY TO ADD NOTES TO EXISTING MENSTR DAYS
 	const addSymptom = (symptoms) => {
@@ -41,29 +51,27 @@ function NotesModal({ modalVisible, setModalVisible, today, currentId }) {
 				setModalVisible(!modalVisible);
 			}}
 		>
-			<View style={styles.tintedBackground}>
-				<TouchableOpacity
-					style={styles.closeArea}
-					onPress={() => setModalVisible(!modalVisible)}
-				></TouchableOpacity>
-				<View style={styles.modalActiveArea}>
-					{/* <Pressable
-								onPress={() => setModalVisible(!modalVisible)}
-								style={styles.buttonClose}
-							>
-								<MaterialCommunityIcons
-									name="window-close"
-									size={30}
-									color="black"
-								/>
-							</Pressable> */}
-					<Symptoms
-						//closeModal={() => setModalVisible(!modalVisible)}
-						addSymptom={addSymptom}
-						currentDay={today.daysCounter}
-					/>
+			<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+				<View style={styles.tintedBackground}>
+					<TouchableOpacity
+						style={styles.closeArea}
+						onPress={() => setModalVisible(!modalVisible)}
+					></TouchableOpacity>
+					<Animatable.View
+						style={styles.modalActiveArea}
+						animation="slideInUp"
+						duration={300}
+					>
+						<Symptoms
+							closeModal={() => setModalVisible(!modalVisible)}
+							addSymptom={addSymptom}
+							currentDay={today.calendarFormat}
+							currentId={currentId}
+							todaySymptoms={todaySymptoms}
+						/>
+					</Animatable.View>
 				</View>
-			</View>
+			</TouchableWithoutFeedback>
 		</Modal>
 	);
 }
@@ -86,7 +94,7 @@ const styles = StyleSheet.create({
 	},
 	closeArea: {
 		width: "100%",
-		height: windowHeight * 0.25,
+		height: windowHeight * 0.35,
 	},
 	modalWrapper: {
 		flex: 1,
@@ -99,7 +107,7 @@ const styles = StyleSheet.create({
 		marginTop: "auto",
 		backgroundColor: "white",
 		justifyContent: "flex-start",
-		height: windowHeight * 0.75,
+		height: windowHeight * 0.65,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},

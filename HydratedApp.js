@@ -30,9 +30,11 @@ export default function HydratedApp() {
 				name="Home"
 				component={HomeScreen}
 				options={{
+					headerMode: "screen",
+					headerShown: false,
 					title: "",
 					headerStyle: {
-						backgroundColor: "purple",
+						backgroundColor: "green",
 					},
 				}}
 			/>

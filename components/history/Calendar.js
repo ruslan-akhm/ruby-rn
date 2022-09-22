@@ -25,6 +25,9 @@ const windowHeight = Dimensions.get("window").height;
 
 import DayModal from "./DayModal";
 
+//++++ add SETTINGS SCREEN
+//ADDING notes via main screen -> save, update on calendar and then again update on main screen. See if it bugs
+
 function Calendar(props) {
 	//const [chosenDay, setChosenDay] = useState();
 	const [markedDates, setMarkedDates] = useState({});
@@ -146,10 +149,11 @@ function Calendar(props) {
 			} else {
 				acc[ovulationDay].customContainerStyle = {
 					borderWidth: 1,
-					borderColor: "#eb346b",
+					borderColor: "#FFD700",
 					width: 35,
+					//backgroundColor: "#FFD700",
 				};
-				acc[ovulationDay].color = "#FFD700";
+				//acc[ovulationDay].color = "#FFD700";
 			}
 			/* Update days info */
 			if (days.hasOwnProperty(ovulationDay)) {
@@ -197,7 +201,7 @@ function Calendar(props) {
 		/* Adding style for Today's day */
 		if (!marked.hasOwnProperty(today)) {
 			marked[today] = {
-				color: "transparent",
+				//color: "transparent",
 				//textColor: "white",
 				customContainerStyle: {
 					borderWidth: 1,
@@ -205,6 +209,16 @@ function Calendar(props) {
 					width: 35,
 				},
 			};
+		} else {
+			marked[today] = {
+				...marked[today],
+				customContainerStyle: {
+					borderWidth: 1,
+					borderColor: "blue",
+					width: 35,
+				},
+			};
+			//console.log(marked[today]);
 		}
 		/* Adding Today to daysInfo */
 		if (!days.hasOwnProperty(today)) {
@@ -216,7 +230,7 @@ function Calendar(props) {
 		}
 		setDaysInfo({ ...days });
 		setMarkedDates(marked);
-	}, [notes]);
+	}, [notes, menstruations]);
 
 	const handleDay = (day) => {
 		if (moment(day.dateString).isSame(moment(today).add(1, "days"))) {
@@ -266,14 +280,16 @@ function Calendar(props) {
 					// },
 				}}
 			/>
-			<DayModal
-				modalShown={modalShown}
-				setModalShown={setModalShown}
-				expandedDay={expandedDay}
-				handleDay={handleDay}
-				today={today}
-				dayInfo={daysInfo[today]}
-			/>
+			{modalShown && (
+				<DayModal
+					modalShown={modalShown}
+					setModalShown={setModalShown}
+					expandedDay={expandedDay}
+					handleDay={handleDay}
+					today={today}
+					dayInfo={daysInfo[today]}
+				/>
+			)}
 		</View>
 	);
 }

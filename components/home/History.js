@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
+import Colors from "../../constants/Colors";
 
 const History = ({ navigation }) => {
 	return (
@@ -25,18 +26,22 @@ const styles = StyleSheet.create({
 		shadowRadius: 4,
 	},
 	btn: {
-		backgroundColor: "orange",
+		// backgroundColor: "orange",
 		padding: 15,
 		marginTop: 10,
-		borderRadius: 5,
+		borderRadius: 10,
+		backgroundColor: "#c25391",
 	},
 	btnText: {
 		fontSize: 20,
+		color: Colors.white,
+		fontWeight: "600",
+		letterSpacing: 0.5,
 	},
 	daysCard: {
 		width: "90%",
 		height: 60,
-		backgroundColor: "yellow",
+		// backgroundColor: "yellow",
 		marginTop: "10%",
 		//borderRadius: 12,
 
@@ -51,7 +56,7 @@ const styles = StyleSheet.create({
 		color: "#004550",
 	},
 	startBtn: {
-		backgroundColor: "red",
+		// backgroundColor: "red",
 		width: "100%",
 		height: 60,
 		alignItems: "center",

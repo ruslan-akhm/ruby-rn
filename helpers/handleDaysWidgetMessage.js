@@ -6,7 +6,9 @@ const OVULATIONS_TODAY = "OVULATIONS_TODAY";
 const handleDaysWidgetMessage = (msgType, payload) => {
 	switch (msgType) {
 		case MENSTRUATIONS_LATE: {
-			return { message: `Menstruations are ${payload} days late` };
+			return {
+				message: `Menstruations are ${payload} days late`,
+			};
 		}
 		case MENSTRUATIONS_TODAY: {
 			return { message: `Menstruations expected today` };

@@ -177,7 +177,7 @@ const cycleReducer = (state = initialCyclesState, action) => {
 					/* Updating ovulations */
 					let latestOvulation = { ...ovulations[latestCycleId] };
 					let latestOvulationDay = { ...latestOvulation.day };
-					latestOvulationDay.date = moment(addedDays[0].dateString)
+					latestOvulationDay.dateString = moment(addedDays[0].dateString)
 						.add(initialUserState.cycleLength / 2, "days")
 						.format("L");
 					latestOvulation.day = { ...latestOvulationDay };
@@ -304,7 +304,9 @@ const cycleReducer = (state = initialCyclesState, action) => {
 				/* Recalculate ovulations day */
 				let actedOvulation = { ...ovulations[id] };
 				let actedOvulationDay = { ...actedOvulation.day };
-				actedOvulationDay.date = moment(actedMenstruation.days[0].dateString)
+				actedOvulationDay.dateString = moment(
+					actedMenstruation.days[0].dateString
+				)
 					.add(initialUserState.cycleLength / 2, "days")
 					.format("L");
 				actedOvulation.day = { ...actedOvulationDay };
@@ -329,7 +331,7 @@ const cycleReducer = (state = initialCyclesState, action) => {
 
 		case DELETE_CYCLE: {
 			const { id } = payload;
-			console.log("DELETE " + id);
+			// console.log("DELETE " + id);
 			let cycles = { ...state.cycles };
 			let menstruations = { ...state.menstruations };
 			let ovulations = { ...state.ovulations };

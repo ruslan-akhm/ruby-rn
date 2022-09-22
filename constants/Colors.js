@@ -1,7 +1,13 @@
 export default {
-	background: "#e4f0f5",
-	primary: "#00293C",
-	secondary: "#1E656D",
-	red: "#F62A00",
-	white: "#f1f1f1",
+	background: "#FDFDFD",
+	primary: "#6E62B7", //purple
+	secondary: "#DCD6FF", //lightpurple
+	blackText: "#333333",
+	lightGray: "#F2F2F2",
+	white: "#FFF",
+
+	// red: "#e64215",
+	// white: "#f1f1f1",
+
+	// lightblue: "#1570e6",
 };

@@ -1,11 +1,16 @@
+export const CREATE_NOTES_INSTANCE = "CREATE_NOTES_INSTANCE";
 export const ADD_NOTE = "ADD_NOTE";
-export const REMOVE_NOTE = "REMOVE_NOTE";
-export const ADD_TAG = "ADD_TAG";
-export const REMOVE_TAG = "REMOVE_TAG";
+// export const REMOVE_NOTE = "REMOVE_NOTE";
+// export const ADD_TAG = "ADD_TAG";
+// export const REMOVE_TAG = "REMOVE_TAG";
 export const UPDATE_NOTES = "UPDATE_NOTES";
 export const MODIFY_NOTES = "MODIFY_NOTES";
 
 //rename
+export const createNotes = (payload) => {
+	return { type: CREATE_NOTES_INSTANCE, payload };
+};
+
 export const addNote = (payload) => {
 	return { type: ADD_NOTE, payload }; // text
 };

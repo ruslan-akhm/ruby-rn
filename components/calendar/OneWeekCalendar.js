@@ -1,43 +1,68 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Pressable } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	View,
+	Button,
+	Pressable,
+	TouchableWithoutFeedback,
+	TouchableOpacity,
+} from "react-native";
 import { WeekCalendar, CalendarProvider } from "react-native-calendars";
+import Colors from "../../constants/Colors";
+import { convertDateFormat } from "../../helpers/convertDateFormat";
 
 function OneWeekCalendar(props) {
+	const today = convertDateFormat(
+		[{ calendarFormat: props.today.calendarFormat }],
+		"/",
+		"-"
+	);
 	return (
 		<CalendarProvider
 			style={styles.provider}
 			date={props.today.calendarFormat}
 			showTodayButton={false}
 			disabledOpacity={0.6}
-			// style={{
-			// 	height: 125,
-			// 	borderRadius: 12,
-			// 	borderWidth: 2,
-			// 	width: "100%",
-			// }}
 		>
 			<View style={styles.weekCalendarHeader}>
-				<Text>{props.headerMonths}</Text>
+				<Text style={{ fontSize: 18, fontFamily: "Avenir-Light" }}>
+					{props.headerMonth}
+				</Text>
 			</View>
-			<WeekCalendar
-				firstDay={
-					parseInt(props.today.weekDay) == 6
-						? 0
-						: parseInt(props.today.weekDay) + 1
-				}
-				onDayPress={(day) => {
-					props.setTodayChosen(() => {
-						return day.dateString == props.today.calendarFormat ? true : false;
-					});
 
-					props.setChosenDay(day);
+			<WeekCalendar
+				firstDay={0}
+				scrollEnabled={false}
+				pagingEnabled={false}
+				theme={{
+					backgroundColor: "transparent",
+					calendarBackground: "transparent",
+					textDayFontWeight: "400",
 				}}
+				// showsHorizontalScrollIndicator={false}
+				// horizontal={false}
+				// firstDay={
+				// 	parseInt(props.today.weekDay) == 6
+				// 		? 0
+				// 		: parseInt(props.today.weekDay) + 1
+				// }
+				// onDayPress={(day) => {
+				// 	props.setTodayChosen(() => {
+				// 		return day.dateString == props.today.calendarFormat ? true : false;
+				// 	});
+
+				// 	props.setChosenDay(day);
+				// }}
 				style={{
 					//borderWidth: 1,
-					borderColor: "red",
-					maxWidth: "95%",
-					paddingRight: "5%",
-					paddingLeft: "4%",
+					// borderColor: "blue",
+					// borderWidth: 1,
+					// overflowX: "hidden",
+					// maxWidth: "100%",
+					// paddingRight: "4%",
+					// paddingLeft: "4%",
+					backgroundColor: "transparent",
 				}}
 				markingType={"custom"}
 				markedDates={{
@@ -55,28 +80,29 @@ function OneWeekCalendar(props) {
 					// 		},
 					// 	},
 					// },
-					[props.today.calendarFormat]: {
+					[today[0].date]: {
 						customStyles: {
 							container: {
-								//backgroundColor: "red",
+								backgroundColor: Colors.primary,
 							},
 							text: {
-								color: "orange",
+								color: Colors.background,
+								// fontWeight: "r00",
 								//fontWeight: "bold",
 							},
 						},
 					},
-					[props.chosenDay.dateString]: {
-						customStyles: {
-							container: {
-								backgroundColor: "red",
-							},
-							text: {
-								color: "black",
-								fontWeight: "bold",
-							},
-						},
-					},
+					// [props.chosenDay.dateString]: {
+					// 	customStyles: {
+					// 		container: {
+					// 			backgroundColor: "red",
+					// 		},
+					// 		text: {
+					// 			color: "black",
+					// 			fontWeight: "bold",
+					// 		},
+					// 	},
+					// },
 				}}
 			/>
 		</CalendarProvider>
@@ -92,6 +118,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 		paddingVertical: 10,
+		flexDirection: "row",
 	},
 });
 

@@ -16,93 +16,17 @@ import { modifyMenstruation, deleteCycle } from "../../store-1/actions/cycle";
 
 import { useDispatch } from "react-redux";
 
-// const MenstruationCalendar = (props) => {
-// 	const { defaultMonthView, todayDay, pickedDays } = props;
-// 	return (
-// 		<CalendarList
-// 			initialDate={defaultMonthView}
-// 			pastScrollRange={12}
-// 			futureScrollRange={1}
-// 			// // theme={{
-// 			// // 	backgroundColor: "#000",
-// 			// // 	calendarBackground: "#000",
-// 			// // 	textSectionTitleColor: "#b6c1cd",
-// 			// // 	textSectionTitleDisabledColor: "#d9e1e8",
-// 			// // 	width: "100%",
-// 			// // }}
-// 			// style={{
-// 			// 	height: "100%",
-// 			// 	borderRadius: 12,
-// 			// }}
-// 			maxDate={todayDay}
-// 			onDayPress={(day) => {
-// 				handlePickDay(day);
-// 			}}
-// 			markingType={"custom"}
-// 			markedDates={{
-// 				// [today]: {
-// 				// 	customStyles: {
-// 				// 		container: {},
-// 				// 		text: {
-// 				// 			color: "orange",
-// 				// 			fontWeight: "bold",
-// 				// 		},
-// 				// 	},
-// 				// },
-// 				...pickedDays,
-// 			}}
-// 		/>
-// 	);
-// };
-
-// const NotesCalendar = (props) => {
-// 	const { defaultMonthView, todayDay, notedDays } = props;
-// 	return (
-// 		<CalendarList
-// 			initialDate={defaultMonthView}
-// 			pastScrollRange={12}
-// 			futureScrollRange={1}
-// 			// // theme={{
-// 			// // 	backgroundColor: "#000",
-// 			// // 	calendarBackground: "#000",
-// 			// // 	textSectionTitleColor: "#b6c1cd",
-// 			// // 	textSectionTitleDisabledColor: "#d9e1e8",
-// 			// // 	width: "100%",
-// 			// // }}
-// 			// style={{
-// 			// 	height: "100%",
-// 			// 	borderRadius: 12,
-// 			// }}
-// 			maxDate={todayDay}
-// 			onDayPress={(day) => {
-// 				handlePickDay(day);
-// 			}}
-// 			markingType={"custom"}
-// 			markedDates={{
-// 				// [today]: {
-// 				// 	customStyles: {
-// 				// 		container: {},
-// 				// 		text: {
-// 				// 			color: "orange",
-// 				// 			fontWeight: "bold",
-// 				// 		},
-// 				// 	},
-// 				// },
-// 				...notedDays,
-// 			}}
-// 		/>
-// 	);
-// };
-
 function ModifyModal({
 	id,
 	menstruationDates,
 	expandedItem,
-	setExpandedItem,
+	closeModal,
 	today,
 	currentId,
 	canBeRemoved,
 	notesDates,
+	minDate,
+	maxDate,
 }) {
 	const dispatch = useDispatch();
 	const [error, setError] = useState({ state: false, text: "Error here" });
@@ -116,8 +40,11 @@ function ModifyModal({
 
 	const [switchEnabled, setSwitchEnabled] = useState(false);
 	//HAS TO AUTO SCROLL CALENDAR TO THE MONTH WHERE MENSTRS WERE
-	console.log("notesDates");
-	console.log(notesDates);
+	// console.log("notesDates");
+	// console.log(notesDates);
+	// console.log("DATEEEEEEES props");
+	// console.log(minDate);
+	// console.log(maxDate);
 	useEffect(() => {
 		const formattedDates = convertDateFormat(menstruationDates, "/", "-");
 		setDefaultMonthView(formattedDates[0].date);
@@ -176,7 +103,7 @@ function ModifyModal({
 		if (updateDisabled) setUpdateDisabled(false);
 		setSwitchEnabled((previousState) => !previousState);
 	};
-	//!!!!!!!!!!SHOULD ADD the limit, ie can not pick days that are past next cycle start day????
+	//!!!!!!!!!!SHOULD ADD the limit, ie can not pick days that are past next cycle start day???? -- Done
 	const submitUpdatedDates = () => {
 		if (Object.keys(pickedDays).length < 1 || !pickedDays) {
 			setError({ state: true, text: "Pick at least 1 day" });
@@ -187,30 +114,25 @@ function ModifyModal({
 			return acc;
 		}, []);
 		dispatch(modifyMenstruation({ id, newDates, endMarking: switchEnabled }));
-		setExpandedItem(null);
+		closeModal();
+		//setExpandedItem(null);
 	};
 
 	const removeLog = () => {
 		//ADD: "ARE YOU SURE YOU WANNA DELETE ?""
 		dispatch(deleteCycle({ id }));
-		setExpandedItem(null);
+		closeModal();
+		//setExpandedItem(null);
 	};
 
-	// onDayLongPress={day => {
-	// 	console.log('selected day', day);
-	//   }}
-
 	///
-	///
-	/// Either add Tab navigator Pressable and add logic to call functions/styling/render depending on which tab is chosen
-	///
-	///
+	///MODAL IS SCROLLABLE !!!!!!!!!!!!!!!!!!!!!!!!!
 	return (
 		<Modal
 			animationType="fade"
 			transparent={true}
 			visible={Boolean(expandedItem)}
-			onRequestClose={() => setExpandedItem(null)}
+			onRequestClose={closeModal} //() => setExpandedItem(null)}
 		>
 			<View
 				style={{
@@ -222,39 +144,6 @@ function ModifyModal({
 					paddingTop: "20%",
 				}}
 			>
-				{/* <View
-					style={{
-						flexDirection: "row",
-
-						borderWidth: 2,
-						width: "100%",
-					}}
-				>
-					<Pressable
-						style={{
-							padding: 10,
-							borderWidth: 2,
-							borderColor: "green",
-							width: "50%",
-							alignItems: "center",
-						}}
-						onPress={() => setView("menstruations")}
-					>
-						<Text>Menstruations</Text>
-					</Pressable>
-					<Pressable
-						style={{
-							padding: 10,
-							borderWidth: 2,
-							borderColor: "green",
-							width: "50%",
-							alignItems: "center",
-						}}
-						onPress={() => setView("notes")}
-					>
-						<Text>Notes</Text>
-					</Pressable>
-				</View> */}
 				<Text>{view} - Change days:</Text>
 				<View
 					style={{
@@ -264,21 +153,6 @@ function ModifyModal({
 					}}
 				>
 					{defaultMonthView && (
-						// &&
-						// 	(view === "menstruations" ? (
-						// 		<MenstruationCalendar
-						// 			defaultMonthView={defaultMonthView}
-						// 			todayDay={todayDay}
-						// 			pickedDays={pickedDays}
-						// 		/>
-						// 	) : (
-						// 		<NotesCalendar
-						// 			defaultMonthView={defaultMonthView}
-						// 			todayDay={todayDay}
-						// 			notedDays={notedDays}
-						// 		/>
-						// 	))
-
 						<CalendarList
 							initialDate={defaultMonthView}
 							pastScrollRange={12}
@@ -294,7 +168,8 @@ function ModifyModal({
 							// 	height: "100%",
 							// 	borderRadius: 12,
 							// }}
-							maxDate={todayDay}
+							minDate={minDate}
+							maxDate={maxDate}
 							onDayPress={(day) => {
 								handlePickDay(day);
 							}}
@@ -372,7 +247,7 @@ function ModifyModal({
 					</Pressable>
 				)}
 				<Pressable
-					onPress={() => setExpandedItem(null)}
+					onPress={closeModal} //() => setExpandedItem(null)}
 					style={{
 						backgroundColor: "red",
 						padding: 40,

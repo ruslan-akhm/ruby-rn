@@ -17,11 +17,14 @@ import History from "../components/home/History";
 import { username } from "../constants/AverageDays";
 import { updateNotes, modifyNotes } from "../store/actions/notes";
 
+import { LinearGradient } from "expo-linear-gradient";
+
 import { determineCurrentState } from "../helpers/determineCurrentState";
 
 import { autoFIllMenstruation } from "../store-1/actions/cycle";
 
 import moment from "moment";
+import OneWeekCalendar from "../components/calendar/OneWeekCalendar";
 
 function HomeScreen({ navigation }) {
 	const userState = useSelector((state) => state.user);
@@ -35,7 +38,7 @@ function HomeScreen({ navigation }) {
 	useEffect(() => {
 		if (!cyclesState.cycles.hasOwnProperty(1)) setNewUser(true);
 		else setNewUser(false);
-		console.log(cyclesState);
+		// console.log(cyclesState);
 	}, [cyclesState]);
 
 	useEffect(() => {
@@ -76,10 +79,36 @@ function HomeScreen({ navigation }) {
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
-			<StatusBar barStyle="light-content" />
-			<View style={styles.headerBox}></View>
+			{/* <LinearGradient
+				// start={{ x: 0.0, y: 0.25 }}
+				// end={{ x: 0.5, y: 1.0 }}
+				// locations={[0, 0.5, 0.6]}
+				colors={["#4c669f", "#3b5998", "#192f6a"]}
+				// style={styles.linearGradient}
+				style={{
+					flex: 1,
+					// justifyContent: "center",
+					// alignItems: "center",
+				}}
+			> */}
+			<View
+				style={{
+					flex: 1,
+					paddingTop: 10,
+				}}
+			>
+				<OneWeekCalendar
+					today={today}
+					headerMonth={moment().format("LL").split(" ")[0]}
+				/>
+			</View>
+			{/* <View
+					style={{
+						flex: 6,
+					}}
+				> */}
 			{newUser ? (
-				<View>
+				<View style={styles.box}>
 					<Text>Hey there, click start to</Text>
 					<Pressable
 						style={{
@@ -96,19 +125,24 @@ function HomeScreen({ navigation }) {
 							Start!
 						</Text>
 					</Pressable>
+					<Notes currentId={lastCycle.id} />
+					{/*	<TodayInformation />*/}
+					<History navigation={navigation} />
 				</View>
 			) : (
 				<View style={styles.box}>
-					<View style={[styles.headerBox, styles.headerShape]}></View>
+					{/* <View style={[styles.headerBox, styles.headerShape]}></View> */}
 					{/* <Text>Hey {userState.username}!</Text> */}
 					{/*IF cycles.length==0 -> new user, show different widget
 					Show button to Go to calendar and choose menst days. Earliest day chosen - start_day
 				*/}
+
 					<DaysWidget
 						cyclesState={cyclesState}
 						userState={userState}
 						navigation={navigation}
 					/>
+
 					{/* <Button onPress={() => console.log(cycles)} title="Show state" /> */}
 					{/* <Pressable
 						onPress={() => {
@@ -125,21 +159,27 @@ function HomeScreen({ navigation }) {
 							Modify
 						</Text>
 					</Pressable> */}
+
 					<Notes currentId={lastCycle.id} />
+
 					{/*	<TodayInformation />*/}
+
 					<History navigation={navigation} />
 				</View>
 			)}
+			{/* </View> */}
+			{/* </LinearGradient> */}
 		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
 	box: {
-		flex: 1,
+		flex: 6,
 		alignItems: "center",
 		justifyContent: "flex-start",
-		backgroundColor: Colors.background,
+		borderWidth: 2,
+		// backgroundColor: "red", //Colors.background,
 	},
 	btn: {
 		backgroundColor: "orange",
@@ -153,25 +193,29 @@ const styles = StyleSheet.create({
 	headerBox: {
 		backgroundColor: Colors.background,
 		width: "100%",
-		height: 100,
-		position: "absolute",
-		top: 0,
-		left: 0,
+		height: "5%",
+		borderWidth: 2,
+		// position: "absolute",
+		// top: 0,
+		// left: 0,
 	},
 	headerShape: {
-		backgroundColor: Colors.background,
-		width: 120,
-		height: 270,
-		position: "absolute",
-		top: -30,
-		left: 155,
-		borderRadius: 50,
-		transform: [{ scaleX: 4 }],
-		zIndex: -1,
+		// backgroundColor: Colors.background,
+		// width: 120,
+		// height: 270,
+		// position: "absolute",
+		// top: -30,
+		// left: 155,
+		// borderRadius: 50,
+		// transform: [{ scaleX: 4 }],
+		// zIndex: -1,
 	},
 	safeArea: {
 		flex: 1,
-		backgroundColor: "red",
+		backgroundColor: Colors.background,
+
+		// backgroundColor:
+		// 	"linear-gradient(142deg, rgba(215,215,245,1) 0%, rgba(245,245,245,1) 1%)",
 	},
 
 	state: {

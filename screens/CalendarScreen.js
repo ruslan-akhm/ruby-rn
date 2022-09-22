@@ -16,7 +16,7 @@ import { calculateCycleDates } from "../helpers/calculateCycleDates";
 function CalendarScreen({ route, navigation }) {
 	const today = useSelector((state) => state.cycles.today);
 	const menstruations = useSelector((state) => state.cycles.menstruations);
-
+	const [todayAlreadyPicked, setTodayAlreadyPicked] = useState(false);
 	const [chosenDays, setChosenDays] = useState([]);
 	const [todayChosen, setTodayChosen] = useState(false);
 	const [daysFlow, setDaysFlow] = useState("today"); //"calendar"
@@ -27,13 +27,7 @@ function CalendarScreen({ route, navigation }) {
 		month: "",
 		daysFromToday: "",
 	});
-	/* Store cycle data */
-	// const [cycleData, setCycleData] = useState({
-	// 	start: "",
-	// 	end: "",
-	// 	start_day: "",
-	// 	end_day: "",
-	// });
+
 	const dispatch = useDispatch();
 
 	useEffect(() => {
@@ -43,6 +37,16 @@ function CalendarScreen({ route, navigation }) {
 			setDaysFlow("today");
 		}
 	}, [chosenDays]);
+
+	useEffect(() => {
+		const currentId = Math.max(...Object.keys(menstruations));
+		const currentDates = menstruations[currentId].days.map(
+			(el) => el.dateString
+		);
+		if (currentDates.includes(today.calendarFormat)) {
+			setTodayAlreadyPicked(true);
+		}
+	}, []);
 
 	// useEffect(() => {
 	// 	dispatch(calculateToday());
@@ -219,7 +223,7 @@ function CalendarScreen({ route, navigation }) {
 					<Text>Mark</Text>
 				</Pressable>
 			)}
-			{daysFlow == "today" && (
+			{daysFlow == "today" && !todayAlreadyPicked && (
 				<Pressable
 					style={[styles.btn, styles.todayBtn]}
 					onPress={handlePressToday}
@@ -227,6 +231,12 @@ function CalendarScreen({ route, navigation }) {
 					<Text>Today</Text>
 				</Pressable>
 			)}
+			<Pressable
+				style={[styles.btn, styles.todayBtn]}
+				onPress={() => navigation.navigate("Modify")}
+			>
+				<Text>Modify existing</Text>
+			</Pressable>
 			{modalVisible && (
 				<ConfirmationModal
 					//modalDate={modalDate}
@@ -237,6 +247,7 @@ function CalendarScreen({ route, navigation }) {
 					chosenDays={chosenDays}
 					setChosenDays={(day) => setChosenDays(day)}
 					navigation={navigation}
+					setTodayChosen={setTodayChosen}
 					//setOption={setOption}
 					//autoFill={autoFill}
 					//manualFill={manualFill}

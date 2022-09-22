@@ -1,4 +1,9 @@
-import { ADD_NOTE, UPDATE_NOTES, MODIFY_NOTES } from "../actions/notes";
+import {
+	CREATE_NOTES_INSTANCE,
+	ADD_NOTE,
+	UPDATE_NOTES,
+	MODIFY_NOTES,
+} from "../actions/notes";
 import { convertDateFormat } from "../../helpers/convertDateFormat";
 import { notes } from "../../temp/dummy-data-empty";
 
@@ -9,6 +14,18 @@ const initialState = {
 const notesReducer = (state = initialState, action) => {
 	const { payload, type } = action;
 	switch (type) {
+		case CREATE_NOTES_INSTANCE: {
+			if (!state.notes.hasOwnProperty(payload.latestId)) {
+				let updatedState = { ...state.notes };
+				updatedState[payload.latestId] = {
+					id: payload.latestId,
+					cycleId: payload.latestId,
+					dates: {},
+				};
+				return { ...state, notes: { ...updatedState } };
+			}
+			return { ...state };
+		}
 		case ADD_NOTE: {
 			const { cycleId, date, symptoms } = payload;
 			let notes = { ...state.notes };
@@ -24,7 +41,8 @@ const notesReducer = (state = initialState, action) => {
 				if (actedNotesDates.hasOwnProperty(date.calendarFormat)) {
 					let actedDayNotes = { ...actedNotesDates[date.calendarFormat] };
 					//DO NOT DUPLICATE SYMPTOMS: gotta check in the component?? (can also show "Already added today??" Or level of severance)
-					actedDayNotes.symptoms = [...actedDayNotes.symptoms, ...symptoms];
+					// actedDayNotes.symptoms = [...actedDayNotes.symptoms, ...symptoms];
+					actedDayNotes.symptoms = [...symptoms];
 					actedNotesDates[date.calendarFormat] = {
 						...actedNotesDates[date.calendarFormat],
 						symptoms: [...actedDayNotes.symptoms],

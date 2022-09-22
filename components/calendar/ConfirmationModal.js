@@ -16,6 +16,7 @@ import {
 	setOvulationDay,
 	updateMenstruationDays,
 } from "../../store-1/actions/cycle";
+
 import { useSelector, useDispatch } from "react-redux";
 
 const windowHeight = Dimensions.get("window").height;
@@ -34,57 +35,8 @@ function ConfirmationModal(props) {
 		daysFlow,
 		todayChosen,
 		navigation,
+		setTodayChosen,
 	} = props;
-	//const [modalExpanded, setModalExpanded] = useState(false);
-
-	//console.log(chosenDays);
-	// const [markedDates, setMarkedDates] = useState({
-	// 	[chosenDay.dateString]: {
-	// 		customStyles: {
-	// 			container: {
-	// 				backgroundColor: "green",
-	// 			},
-	// 			text: {
-	// 				color: "black",
-	// 				fontWeight: "bold",
-	// 			},
-	// 		},
-	// 	},
-	// });
-
-	// const expandModal = () => {
-	// 	setModalExpanded(true);
-	// };
-	//MAKE SURE THE DAYS ARE REFLECTED BASED ON NUMBER OF DAYS (NOT FROM 1ST DAY IN MENSTR AND EVERYTHING UP UNTIL LAST DAY OF MENSTR)
-	// const handleDayPress = (chosenDay) => {
-	// 	let updatedDates = { ...markedDates };
-	// 	if (chosenDay.dateString in updatedDates) {
-	// 		delete updatedDates[chosenDay.dateString];
-	// 	} else {
-	// 		updatedDates[chosenDay.dateString] = {
-	// 			customStyles: {
-	// 				container: {
-	// 					backgroundColor: "green",
-	// 				},
-	// 				text: {
-	// 					color: "black",
-	// 					fontWeight: "bold",
-	// 				},
-	// 			},
-	// 		};
-	// 	}
-	// 	setMarkedDates({ ...updatedDates });
-	// };
-
-	// const handleSubmit = () => {
-	// 	let datesToSubmit = Object.keys(markedDates).map((d) => {
-	// 		return {
-	// 			day: Math.trunc(new Date(d).getTime() / (24 * 60 * 60 * 1000)),
-	// 			date: d,
-	// 		};
-	// 	});
-	// 	manualFill(datesToSubmit);
-	// };
 
 	const submit = () => {
 		dispatch(
@@ -101,6 +53,7 @@ function ConfirmationModal(props) {
 		if (todayChosen) {
 			setChosenDays([]);
 		}
+		setTodayChosen(false);
 		setModalVisible(!modalVisible);
 	};
 
@@ -127,7 +80,6 @@ function ConfirmationModal(props) {
 						style={[styles.options, styles.optionOne]}
 						onPress={submit}
 					>
-						{/* <Text>Fill until today ({daysFromToday} days)</Text> */}
 						<Text>Confirm</Text>
 					</Pressable>
 					<Pressable

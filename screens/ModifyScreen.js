@@ -18,17 +18,21 @@ function ModifyScreen({ route, navigation }) {
 	const cycles = useSelector((state) => state.cycles);
 	const ids = [...Object.keys(cycles.cycles)];
 	const notes = useSelector((state) => state.notes.notes);
+	//THERE MIGHT BE no notes on the expanded Item (no such id) : line 135
+	//SHOULD CREATE NEW ID NOTES??
+	//can add notesUpdate - to check if id in notes: if no - create empty prop ; if yes - do nothing?????
 
+	//WHEN deleting the whole cycle - remove notes too
 	const [expandedItem, setExpandedItem] = useState();
 	const [currentId, setCurrentId] = useState();
 	const [canBeRemoved, setCanBeRemoved] = useState(false);
-	// const latestCycleId = Math.max(...Object.keys(cycles.cycles));
-	// console.log(cycles.cycles);
+	const [minDate, setMinDate] = useState(undefined);
+	const [maxDate, setMaxDate] = useState(
+		moment(cycles.today.calendarFormat).subtract(1, "days").format("L")
+	);
 
 	useEffect(() => {
-		//console.log(cycles);
 		let latestCycleId = Math.max(...ids);
-		//console.log(cycles.cycles[latestCycleId].menstruation.isCurrently);
 		if (cycles.cycles[latestCycleId].menstruation.isCurrently) {
 			setCurrentId(latestCycleId);
 		} else {
@@ -36,19 +40,40 @@ function ModifyScreen({ route, navigation }) {
 		}
 	}, [cycles]);
 
-	// useEffect(() => {
-
-	// 	if (expandedItem == latestCycleId) {
-	// 		setCanBeRemoved(true);
-	// 	} else {
-	// 		setCanBeRemoved(false);
-	// 	}
-	// }, [expandedItem]);
-
 	const handlePress = (id) => {
+		if (ids.includes((+id - 1).toString())) {
+			/* There is an exisitng previous cycle */
+			const prevCycleMenstruations = cycles.menstruations[+id - 1].days;
+			setMinDate(
+				prevCycleMenstruations[prevCycleMenstruations.length - 1].dateString
+			);
+		}
+		if (ids.includes((+id + 1).toString())) {
+			/* There is an exisitng next cycle */
+			const nextCycleMenstruations = cycles.menstruations[+id + 1].days;
+			// console.log(
+			// 	moment(nextCycleMenstruations[0].dateString)
+			// 		.subtract(1, "days")
+			// 		.format("L")
+			// );
+			setMaxDate(
+				moment(nextCycleMenstruations[0].dateString)
+					.subtract(1, "days")
+					.format("L")
+			);
+		}
+
 		setExpandedItem(id);
 		let latestCycleId = Math.max(...ids);
 		setCanBeRemoved(id == latestCycleId);
+	};
+
+	const closeModal = () => {
+		setExpandedItem(null);
+		setMinDate(undefined);
+		setMaxDate(
+			moment(cycles.today.calendarFormat).subtract(1, "days").format("L")
+		);
 	};
 
 	const menstruationsList = ids.reduce((acc, id) => {
@@ -128,11 +153,14 @@ function ModifyScreen({ route, navigation }) {
 					id={expandedItem}
 					menstruationDates={cycles.menstruations[expandedItem].days}
 					expandedItem={expandedItem}
-					setExpandedItem={setExpandedItem}
+					//setExpandedItem={setExpandedItem}
+					closeModal={closeModal}
 					today={cycles.today}
 					currentId={currentId}
 					canBeRemoved={canBeRemoved}
 					notesDates={notes[expandedItem].dates}
+					minDate={minDate}
+					maxDate={maxDate}
 				/>
 			)}
 		</View>

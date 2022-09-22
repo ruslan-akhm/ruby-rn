@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
 	Pressable,
 	StyleSheet,
@@ -12,25 +12,50 @@ import {
 import { useSelector } from "react-redux";
 import { symptoms } from "../../temp/dummy-data";
 import Colors from "../../constants/Colors";
+// import { MaterialIcons } from "@expo/vector-icons";
 
-function Symptoms(props) {
+import TrashLogo from "../../common/static/TrashLogo";
+
+import * as Animatable from "react-native-animatable";
+import CustomKeyboard from "../shared/CustomKeyboard";
+
+////
+//////
+/////ovulation.isCurrently needed for widget message
+////
+////
+function Symptoms({
+	currentId,
+	currentDay,
+	addSymptom,
+	closeModal,
+	todaySymptoms,
+}) {
 	const [chosenSymptoms, setChosenSymptoms] = useState([]);
 	const [inputText, setInputText] = useState("");
 	const notes = useSelector((state) => state.notes.notes);
 
 	const [symptomsObj, setSymptomsObj] = useState({ ...symptoms });
 
+	const scrollRef = useRef(null);
 	// useEffect(() => {
 	// 	props.currentDay && setAlreadyChosen(notes[props.currentDay].tags);
 	// }, [notes, props]);
 
-	const handleChoose = (symptom) => {
-		if (chosenSymptoms.includes(symptom)) {
-			return; //chosenSymptoms.filter((s) => s !== symptom);
+	useEffect(() => {
+		if (todaySymptoms) {
+			setChosenSymptoms([...todaySymptoms]);
 		}
+	}, [todaySymptoms]);
+
+	const handleChoose = (symptom) => {
+		// if (chosenSymptoms.includes(symptom)) {
+		// 	return; //chosenSymptoms.filter((s) => s !== symptom);
+		// }
 		setChosenSymptoms(() => {
 			return [...chosenSymptoms, symptom];
 		});
+		// scrollRef.current.scrollToEnd({ animated: true });
 	};
 
 	const addCustomNote = () => {
@@ -40,20 +65,32 @@ function Symptoms(props) {
 		Keyboard.dismiss();
 	};
 
+	const removeSymptom = (index) => {
+		let updatedChosenSymptoms = [...chosenSymptoms];
+		updatedChosenSymptoms.splice(index, 1);
+		setChosenSymptoms([...updatedChosenSymptoms]);
+	};
+
 	const symptomsList = Object.keys(symptomsObj).map((s) => {
+		if (notes[currentId].dates.hasOwnProperty(currentDay)) {
+			if (notes[currentId].dates[currentDay].symptoms.includes(symptoms[s])) {
+				return;
+			}
+		}
+		if (chosenSymptoms.includes(symptoms[s])) {
+			return;
+		}
 		return (
 			<Pressable
 				id={s}
 				key={symptoms[s]}
 				style={[
 					styles.symptom,
-					//alreadyChosen.includes(s) && styles.previosulyChosen,
 					chosenSymptoms.includes(symptoms[s])
 						? styles.chosen
 						: styles.unchosen,
 				]}
 				onPress={() => handleChoose(symptoms[s])}
-				//disabled={alreadyChosen.includes(s)}
 			>
 				<Text
 					style={[
@@ -70,116 +107,209 @@ function Symptoms(props) {
 	});
 
 	return (
-		<>
-			<Text>Suggested:</Text>
-			<View style={{ height: 130 }}>
+		<View
+			style={{
+				alignItems: "center",
+				width: "100%",
+				borderWidth: 3,
+				borderColor: "purple",
+				// height: "100%",
+				flex: 1,
+			}}
+		>
+			<View style={{ height: "15%", flex: 1 }}>
+				<Text>Suggested:</Text>
 				<ScrollView horizontal={true} style={styles.list}>
 					{symptomsList}
 				</ScrollView>
 			</View>
-			<TouchableWithoutFeedback accessible={false}>
+			<CustomKeyboard
+				textValue={inputText}
+				onChangeText={setInputText}
+				onPress={addCustomNote}
+			/>
+			{/* <TouchableWithoutFeedback accessible={false}>
 				<View
 					style={{
 						width: "100%",
-
+						flexDirection: "row",
 						alignItems: "center",
-						paddingBottom: 10,
+						paddingVertical: 15,
+						paddingRight: 10,
+						paddingLeft: 15,
 					}}
 				>
-					<Text>Add your own:</Text>
-					<TextInput
-						//multiline={true}
-						//numberOfLines={4}
-						onChangeText={(text) => {
-							setInputText(text);
-						}}
-						value={inputText}
+				 
+					<View
 						style={{
-							borderWidth: 1,
-							height: 40,
-							width: "90%",
-						}}
-					/>
-					<Pressable
-						onPress={addCustomNote}
-						style={{
-							paddingHorizontal: 20,
-							paddingVertical: 5,
-							borderWidth: 1,
-							borderColor: "green",
-							backgroundColor: "green",
+							// borderWidth: 2,
+							width: "85%",
 						}}
 					>
-						<Text>Add custom note</Text>
-					</Pressable>
-				</View>
-			</TouchableWithoutFeedback>
-			{/* CLICKING ON KEYBOARD LETTER - CLOSES THE KEYBOARD */}
-			<View>
-				{chosenSymptoms.map((s, index) => {
-					return (
-						<View
-							key={"chosen" + index}
+						<TextInput
+							//multiline={true}
+							//numberOfLines={4}
+							onChangeText={(text) => {
+								setInputText(text);
+							}}
+							value={inputText}
 							style={{
-								width: "100%",
-								paddingHorizontal: 20,
-								paddingVertical: 5,
 								borderWidth: 1,
-								flexDirection: "row",
+								borderRadius: 20,
+								height: 40,
+								width: "100%",
+								fontSize: 18,
+								paddingHorizontal: 10,
+							}}
+						/>
+					</View>
+					<View
+						style={{
+							width: "15%",
+							// borderWidth: 2,
+							alignItems: "center",
+							height: "100%",
+						}}
+					>
+						<Pressable
+							onPress={addCustomNote}
+							style={{
+								backgroundColor: Colors.lightblue,
+								borderRadius: "50%",
+								width: 40,
+								height: 40,
 							}}
 						>
-							<Text>{s}</Text>
-							<Text>**DELETE ICON**</Text>
-						</View>
-					);
-				})}
+							<MaterialIcons
+								name="add"
+								size={39}
+								color="white"
+								style={{
+									// borderWidth: 1,
+									textAlign: "center",
+									width: 40,
+									height: 40,
+									// backgroundColor: "orange",
+								}}
+							/>
+						</Pressable>
+					</View>
+				</View>
+			</TouchableWithoutFeedback> */}
+
+			{/* CLICKING ON KEYBOARD LETTER - CLOSES THE KEYBOARD */}
+			<View
+				style={{
+					flex: 3,
+					paddingHorizontal: 15,
+					paddingTop: 10,
+					paddingBottom: 35,
+				}}
+			>
+				{/* SCROLLVIEW does not scroll */}
+				<ScrollView
+					style={{ width: "100%", minHeight: "100%" }}
+					horizontal={false}
+					// contentContainerStyle={{ flexGrow: 1 }}
+					ref={scrollRef}
+					onContentSizeChange={() => scrollRef.current.scrollToEnd()}
+				>
+					{chosenSymptoms.map((s, index) => {
+						return (
+							<Animatable.View
+								key={"chosen" + index}
+								style={{
+									flex: 1,
+									paddingHorizontal: 15,
+									paddingVertical: 5,
+									flexDirection: "row",
+									alignItems: "center",
+									marginBottom: 5,
+									borderBottomColor: Colors.lightGray,
+									borderBottomWidth: 1,
+								}}
+								animation="slideInRight"
+								duration={200}
+							>
+								<Text
+									style={{
+										width: "85%",
+										fontSize: 20,
+										color: Colors.blackText,
+									}}
+								>
+									{s[0].toUpperCase() + s.substring(1)}
+								</Text>
+								<Pressable
+									onPress={() => removeSymptom(index)}
+									style={{
+										padding: 2,
+										width: "15%",
+										height: 36,
+									}}
+								>
+									{/* <MaterialIcons
+										name="delete"
+										size={34}
+										color={Colors.white}
+										style={{ textAlign: "center" }}
+									/> */}
+									<TrashLogo />
+								</Pressable>
+							</Animatable.View>
+						);
+					})}
+				</ScrollView>
 			</View>
 			<View style={styles.actionWrapper}>
-				{chosenSymptoms.length > 0 ? (
-					<Pressable
-						style={[styles.actionButton, styles.actionAdd]}
-						onPress={() => {
-							setInputText("");
-							props.addSymptom(chosenSymptoms);
-						}}
-					>
-						<Text style={styles.actionButtonText}>
-							{chosenSymptoms.length > 1 ? "Add symptoms" : "Add symptom"}
-						</Text>
-					</Pressable>
-				) : (
-					<Pressable
-						style={[styles.actionButton, styles.actionCancel]}
-						//onPress={props.closeModal}
-					>
-						<Text style={styles.actionButtonText}>Cancel</Text>
-					</Pressable>
-				)}
+				<Pressable
+					style={[styles.actionButton, styles.actionAdd]}
+					onPress={() => {
+						setInputText("");
+						addSymptom(chosenSymptoms);
+					}}
+				>
+					<Text style={styles.actionButtonText}>
+						{/* {chosenSymptoms.length > 1 ? "Add symptoms" : "Add symptom"} */}
+						Save
+					</Text>
+				</Pressable>
+				{/* //{chosenSymptoms.length > 0 ? (
+					
+				//</View>) : (
+					// <Pressable
+					// 	style={[styles.actionButton, styles.actionCancel]}
+					// 	onPress={closeModal}
+					// >
+					// 	<Text style={styles.actionButtonText}>Cancel</Text>
+					// </Pressable>
+				//)} */}
 			</View>
-		</>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	actionAdd: {
-		borderColor: "green",
+		backgroundColor: Colors.primary,
 	},
 	actionButton: {
-		borderRadius: 4,
-		borderWidth: 2,
-		padding: 10,
+		paddingVertical: 15,
+		borderRadius: 12,
 		width: "90%",
 		alignItems: "center",
 	},
 	actionButtonText: {
 		fontSize: 20,
+		color: Colors.white,
 	},
 	actionCancel: {
-		borderColor: "red",
+		backgroundColor: Colors.red,
 	},
 	actionWrapper: {
 		width: "100%",
-		flex: 0.3,
+		flex: 1,
+		// height: "20%",
 		justifyContent: "flex-start",
 		alignItems: "center",
 	},
@@ -198,13 +328,14 @@ const styles = StyleSheet.create({
 		color: Colors.background,
 	},
 	list: {
-		flex: 0.2,
+		// flex: 0.2,
+		// height: "15%",
+		borderWidth: 3,
 		// flexDirection: "row",
 		// flexWrap: "wrap",
 		// width: "100%",
 		// justifyContent: "center",
 		// paddingTop: 10,
-		// borderWidth: 3,
 		// overflow: "scroll",
 	},
 	previosulyChosen: {

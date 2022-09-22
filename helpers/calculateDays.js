@@ -7,8 +7,8 @@ export const calculateDays = ({ lastMenstruation, lastDay }) => {
 			day: 18950,
         }
     */
-	console.log("CALCULATE DAYS");
-	console.log(lastDay);
+	// console.log("CALCULATE DAYS");
+	// console.log(lastDay);
 	let sortedDays = lastMenstruation.days.sort((a, b) => a.day - b.day);
 
 	while (sortedDays[sortedDays.length - 1].day < lastDay) {

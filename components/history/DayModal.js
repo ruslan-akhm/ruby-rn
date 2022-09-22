@@ -12,14 +12,21 @@ import {
 	TextInput,
 	KeyboardAvoidingView,
 	Platform,
+	Keyboard,
+	TouchableWithoutFeedback,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-
+import Colors from "../../constants/Colors";
 import { AntDesign } from "@expo/vector-icons";
+
+import { MaterialIcons } from "@expo/vector-icons";
 
 import { convertDateFormat } from "../../helpers/convertDateFormat";
 import { modifyNotes } from "../../store-1/actions/notes";
 import moment from "moment";
+
+import * as Animatable from "react-native-animatable";
+import CustomKeyboard from "../shared/CustomKeyboard";
 
 const windowHeight = Dimensions.get("window").height;
 
@@ -38,6 +45,7 @@ const DayModal = ({
 	const date = Object.keys(expandedDay)[0];
 	const scrollViewRef = useRef();
 	const initRender = useRef(true);
+	const viewRef = useRef();
 
 	useEffect(() => {
 		const notesObject = expandedDay[date].notes.map((note, index) => {
@@ -47,10 +55,11 @@ const DayModal = ({
 	}, [expandedDay]);
 
 	useEffect(() => {
-		if (scrollViewRef.current) {
+		if (userNotes.length > 0) {
 			if (!initRender.current) {
-				console.log("HERE");
-				scrollViewRef.current.scrollToEnd({ animated: true });
+				if (scrollViewRef.current) {
+					scrollViewRef.current.scrollToEnd({ animated: true });
+				}
 			} else {
 				initRender.current = false;
 			}
@@ -58,6 +67,9 @@ const DayModal = ({
 	}, [userNotes]);
 
 	const editNotes = () => {
+		if (viewRef) {
+			viewRef.current?.slideInUp(200);
+		}
 		setEditMode(true);
 	};
 
@@ -79,17 +91,18 @@ const DayModal = ({
 	};
 
 	const addNote = () => {
+		if (!textInput || textInput.trim().length < 1) return;
+		//setTextInput("");
 		const ids = userNotes.reduce((acc, val) => {
 			acc = [...acc, val.id];
 			return acc;
 		}, []);
 
 		const newNote = {
-			text: textInput,
+			text: textInput.trim(),
 			id: Math.max(...ids) + 1,
 		};
-
-		if (!textInput || textInput.length < 1) return;
+		setTextInput("");
 		const updatedUserNotes = [...userNotes, newNote];
 		setUserNotes([...updatedUserNotes]);
 	};
@@ -150,211 +163,297 @@ const DayModal = ({
 				setModalShown(false);
 			}}
 		>
-			<ScrollView
-				contentContainerStyle={{ flexGrow: 1 }}
-				keyboardShouldPersistTaps="handled"
-				style={{ borderWidth: 3, borderColor: "red" }}
+			{/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+			<View
+				style={{
+					position: "absolute",
+					top: 0,
+					width: "100%",
+					height: "100%",
+					backgroundColor: "rgba(0,0,0,0.8)",
+				}}
 			>
-				<View
-					style={{
-						position: "absolute",
-						top: 0,
-						width: "100%",
-						height: "100%",
-						backgroundColor: "rgba(0,0,0,0.8)",
-					}}
+				<KeyboardAvoidingView
+					style={{ flex: 1 }}
+					behavior={Platform.OS === "ios" ? "padding" : "height"}
+					enabled={true}
 				>
-					<KeyboardAvoidingView
-						style={{ flex: 1 }}
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						enabled={true}
+					<TouchableOpacity
+						style={{ width: "100%", height: windowHeight * 0.5 }}
+						onPress={() => {
+							setEditMode(false);
+							setTextInput("");
+							setModalShown(false);
+						}}
+					></TouchableOpacity>
+					<Animatable.View
+						style={{
+							alignItems: "center",
+							marginTop: "auto",
+							backgroundColor: "white",
+							justifyContent: "flex-start",
+							height: editMode ? windowHeight * 0.75 : windowHeight * 0.5,
+							//borderRadius: 10,
+						}}
+						animation="slideInUp"
+						duration={300}
+						ref={viewRef}
 					>
-						<TouchableOpacity
-							style={{ width: "100%", height: windowHeight * 0.5 }}
-							onPress={() => {
-								setEditMode(false);
-								setTextInput("");
-								setModalShown(false);
-							}}
-						></TouchableOpacity>
 						<View
 							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
 								alignItems: "center",
-								marginTop: "auto",
-								backgroundColor: "white",
-								justifyContent: "flex-start",
-								height: editMode ? windowHeight * 0.75 : windowHeight * 0.5,
-								//borderRadius: 10,
+								width: "100%",
+								paddingHorizontal: 15,
+								paddingTop: 20,
+								paddingBottom: 10,
+								height: "20%",
 							}}
 						>
+							<Pressable
+								onPress={() =>
+									handleDay({
+										dateString: moment(date)
+											.subtract(1, "days")
+											.format("YYYY-MM-DD"),
+									})
+								}
+								disabled={editMode}
+							>
+								<AntDesign
+									name="left"
+									size={30}
+									color={editMode ? "lightgray" : "black"}
+									style={{ padding: 10 }}
+								/>
+							</Pressable>
+							<Text style={{ fontSize: 28 }}>
+								{moment(date).format("LLL").split(",")[0]}
+							</Text>
+							<Pressable
+								disabled={editMode || moment(date).isSame(today)}
+								onPress={() =>
+									handleDay({
+										dateString: moment(date)
+											.add(1, "days")
+											.format("YYYY-MM-DD"),
+									})
+								}
+							>
+								<AntDesign
+									name="right"
+									size={30}
+									color={
+										editMode || moment(date).isSame(today)
+											? "lightgray"
+											: "black"
+									}
+									style={{ padding: 10 }}
+								/>
+							</Pressable>
+						</View>
+						{dayTypes ? (
 							<View
 								style={{
-									flexDirection: "row",
-									justifyContent: "space-between",
-									alignItems: "center",
 									width: "100%",
-									paddingHorizontal: 15,
-									paddingTop: 20,
-									paddingBottom: 10,
-									height: "20%",
+									flexDirection: "row",
+									justifyContent: "center",
+									flexWrap: "wrap",
+									marginBottom: 20,
+									height: "10%",
 								}}
 							>
-								<Pressable
-									onPress={() =>
-										handleDay({
-											dateString: moment(date)
-												.subtract(1, "days")
-												.format("YYYY-MM-DD"),
-										})
-									}
-									disabled={editMode}
-								>
-									<AntDesign
-										name="left"
-										size={30}
-										color={
-											editMode || moment(date).isSame(today)
-												? "lightgray"
-												: "black"
-										}
-										style={{ padding: 10 }}
-									/>
-								</Pressable>
-								<Text style={{ fontSize: 28 }}>
-									{moment(date).format("LLL").split(",")[0]}
-								</Text>
-								<Pressable
-									disabled={editMode || moment(date).isSame(today)}
-									onPress={() =>
-										handleDay({
-											dateString: moment(date)
-												.add(1, "days")
-												.format("YYYY-MM-DD"),
-										})
-									}
-								>
-									<AntDesign
-										name="right"
-										size={30}
-										color={
-											editMode || moment(date).isSame(today)
-												? "lightgray"
-												: "black"
-										}
-										style={{ padding: 10 }}
-									/>
-								</Pressable>
+								{dayTypes}
 							</View>
-							{dayTypes ? (
-								<View
-									style={{
-										width: "100%",
-										flexDirection: "row",
-										justifyContent: "center",
-										flexWrap: "wrap",
-										marginBottom: 20,
-										height: "10%",
-									}}
-								>
-									{dayTypes}
-								</View>
-							) : (
-								<Text>No reported activity</Text>
-							)}
+						) : (
+							<Text>No reported activity</Text>
+						)}
 
-							<View
-								style={{
-									width: "100%",
-									padding: 10,
-									height: "40%",
-								}}
+						<View
+							style={{
+								width: "100%",
+								padding: 10,
+								height: "40%",
+							}}
+						>
+							{dayNotes && <Text>Notes:</Text>}
+							<ScrollView
+								ref={scrollViewRef}
+								//SCROLLS TO THE BOTTOM ON THE INITIAL RENDER
+								// onContentSizeChange={() =>
+								// 	scrollViewRef.current.scrollToEnd({ animated: true })
+								// }
 							>
-								{dayNotes && <Text>Notes:</Text>}
-								<ScrollView
-									ref={scrollViewRef}
-									//SCROLLS TO THE BOTTOM ON THE INITIAL RENDER
-									// onContentSizeChange={() =>
-									// 	scrollViewRef.current.scrollToEnd({ animated: true })
-									// }
-								>
-									{dayNotes}
-								</ScrollView>
-							</View>
-							<View
-								style={{
-									width: "100%",
-									height: "25%",
-									alignItems: "center",
-									paddingTop: 10,
-									flexDirection: "row",
-									justifyContent: "space-around",
-								}}
-							>
-								<View style={{ borderWidth: 2, width: "100%" }}>
-									{editMode ? (
-										<View>
-											<View style={{ flexDirection: "row" }}>
-												<TextInput
+								{dayNotes}
+							</ScrollView>
+						</View>
+						<View
+							style={{
+								width: "100%",
+								height: "25%",
+								alignItems: "center",
+								paddingTop: 10,
+								flexDirection: "row",
+								justifyContent: "space-around",
+							}}
+						>
+							<View style={{ borderWidth: 5, width: "100%" }}>
+								{editMode ? (
+									<View>
+										<CustomKeyboard
+											textValue={textInput}
+											onChangeText={setTextInput}
+											onPress={addNote}
+										/>
+										{/* <TouchableWithoutFeedback accessible={false}>
+											<View
+												style={{
+													width: "100%",
+													flexDirection: "row",
+													alignItems: "center",
+													paddingVertical: 15,
+													paddingRight: 10,
+													paddingLeft: 15,
+												}}
+											>
+												 
+												<View
 													style={{
-														borderWidth: 1,
-														borderColor: "blue",
+														// borderWidth: 2,
 														width: "85%",
 													}}
-													value={textInput}
-													onChangeText={(text) => setTextInput(text)}
-												/>
-
-												<Pressable
-													style={{ width: "10%", borderWidth: 2, padding: 7 }}
-													onPress={addNote}
 												>
-													<Text>+</Text>
-												</Pressable>
-											</View>
-											<Pressable
-												style={{
-													borderWidth: 2,
-													borderColor: "green",
-													paddingVertical: 10,
-													paddingHorizontal: 15,
-													width: "100%",
-												}}
-												onPress={saveNotes}
-											>
-												<Text
+													<TextInput
+														//multiline={true}
+														//numberOfLines={4}
+														onChangeText={(text) => setTextInput(text)}
+														value={textInput}
+														style={{
+															borderWidth: 1,
+															borderRadius: 20,
+															height: 40,
+															width: "100%",
+															fontSize: 18,
+															paddingHorizontal: 10,
+														}}
+													/>
+												</View>
+												<View
 													style={{
-														fontSize: 20,
+														width: "15%",
+														// borderWidth: 2,
+														alignItems: "center",
+														height: "100%",
 													}}
 												>
-													Save
-												</Text>
-											</Pressable>
-										</View>
-									) : (
+													<Pressable
+														onPress={addNote}
+														style={{
+															backgroundColor: Colors.lightblue,
+															borderRadius: "50%",
+															width: 40,
+															height: 40,
+														}}
+													>
+														<MaterialIcons
+															name="add"
+															size={39}
+															color="white"
+															style={{
+																// borderWidth: 1,
+																textAlign: "center",
+																width: 40,
+																height: 40,
+																// backgroundColor: "orange",
+															}}
+														/>
+													</Pressable>
+												</View>
+											</View>
+										</TouchableWithoutFeedback> */}
 										<Pressable
 											style={{
 												borderWidth: 2,
 												borderColor: "green",
 												paddingVertical: 10,
 												paddingHorizontal: 15,
+												width: "100%",
 											}}
-											onPress={editNotes}
+											onPress={saveNotes}
 										>
 											<Text
 												style={{
 													fontSize: 20,
 												}}
 											>
-												Edit notes
+												Save
 											</Text>
 										</Pressable>
-									)}
-								</View>
+									</View>
+								) : (
+									// <View>
+									// 	<View style={{ flexDirection: "row" }}>
+									// 		<TextInput
+									// 			style={{
+									// 				borderWidth: 1,
+									// 				borderColor: "blue",
+									// 				width: "85%",
+									// 			}}
+									// 			value={textInput}
+									// 			onChangeText={(text) => setTextInput(text)}
+									// 		/>
+
+									// 		<Pressable
+									// 			style={{ width: "10%", borderWidth: 2, padding: 7 }}
+									// 			onPress={addNote}
+									// 		>
+									// 			<Text>+</Text>
+									// 		</Pressable>
+									// 	</View>
+									// 	<Pressable
+									// 		style={{
+									// 			borderWidth: 2,
+									// 			borderColor: "green",
+									// 			paddingVertical: 10,
+									// 			paddingHorizontal: 15,
+									// 			width: "100%",
+									// 		}}
+									// 		onPress={saveNotes}
+									// 	>
+									// 		<Text
+									// 			style={{
+									// 				fontSize: 20,
+									// 			}}
+									// 		>
+									// 			Save
+									// 		</Text>
+									// 	</Pressable>
+									// </View>
+									<Pressable
+										style={{
+											borderWidth: 2,
+											borderColor: "green",
+											paddingVertical: 10,
+											paddingHorizontal: 15,
+										}}
+										onPress={editNotes}
+									>
+										<Text
+											style={{
+												fontSize: 20,
+											}}
+										>
+											Edit notes
+										</Text>
+									</Pressable>
+								)}
 							</View>
 						</View>
-					</KeyboardAvoidingView>
-				</View>
-			</ScrollView>
+					</Animatable.View>
+				</KeyboardAvoidingView>
+			</View>
+			{/* </TouchableWithoutFeedback> */}
 		</Modal>
 	);
 };

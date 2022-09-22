@@ -1,5 +1,4 @@
 import React from "react";
-//import { View, Text } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 function RubyLogo(props) {
